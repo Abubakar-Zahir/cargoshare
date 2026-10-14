@@ -8,6 +8,7 @@ export const publicEnvSchema = z.object({
     .string()
     .startsWith("sb_publishable_", "must be a Supabase publishable key"),
   NEXT_PUBLIC_API_URL: httpUrl,
+  NEXT_PUBLIC_SITE_URL: httpUrl,
 });
 
 export type PublicEnv = z.infer<typeof publicEnvSchema>;

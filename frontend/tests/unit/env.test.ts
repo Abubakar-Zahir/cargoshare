@@ -6,6 +6,7 @@ const validEnv = {
   NEXT_PUBLIC_SUPABASE_URL: "https://abc.supabase.co",
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_123",
   NEXT_PUBLIC_API_URL: "http://localhost:8000/api/v1",
+  NEXT_PUBLIC_SITE_URL: "https://cargoshare.example",
 };
 
 function jwtWithRole(role: string): string {

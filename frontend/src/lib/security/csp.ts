@@ -13,6 +13,7 @@ export function createNonce(): string {
 
 export function buildCsp(options: CspOptions): string {
   const { nonce, isDev } = options;
+  const styleSource = isDev ? "'unsafe-inline'" : `'nonce-${nonce}'`;
   const directives: [string, ...string[]][] = [
     ["default-src", "'self'"],
     [
@@ -22,7 +23,9 @@ export function buildCsp(options: CspOptions): string {
       "'strict-dynamic'",
       ...(isDev ? ["'unsafe-eval'"] : []),
     ],
-    ["style-src", "'self'", isDev ? "'unsafe-inline'" : `'nonce-${nonce}'`],
+    ["style-src", "'self'", styleSource],
+    ["style-src-elem", "'self'", styleSource],
+    ["style-src-attr", "'unsafe-inline'"],
     ["img-src", "'self'", "blob:", "data:", ...options.imageOrigins],
     ["font-src", "'self'"],
     ["connect-src", "'self'", ...options.connectOrigins],

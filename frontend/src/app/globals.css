@@ -2,128 +2,215 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+/* dark: follows the saved choice, or the device when the choice is "system". */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(
+      :root:not([data-theme="light"]),
+      :root:not([data-theme="light"]) *
+    ) {
+      @slot;
+    }
+  }
+}
+
+/*
+ * Editorial tokens (frontend.md 3.3): warm paper and deep ink, one bottle-green
+ * accent, red only for errors and disputes. Components use these semantic names
+ * only. The dark block appears twice (manual choice and system choice);
+ * tests/unit/tokens.test.ts asserts both copies are identical, that every text
+ * pair meets 4.5:1 and every UI pair meets 3:1.
+ */
+:root {
+  color-scheme: light;
+  --bg: oklch(0.972 0.012 85);
+  --surface: oklch(0.99 0.006 85);
+  --surface-2: oklch(0.945 0.012 85);
+  --ink: oklch(0.21 0.02 260);
+  --ink-muted: oklch(0.42 0.015 260);
+  --line: oklch(0.86 0.012 85);
+  --line-strong: oklch(0.55 0.012 260);
+  --ring: oklch(0.42 0.085 162);
+  --accent: oklch(0.42 0.085 162);
+  --accent-ink: oklch(0.972 0.012 85);
+  --accent-soft: oklch(0.93 0.03 162);
+  --danger: oklch(0.5 0.19 27);
+  --danger-soft: oklch(0.95 0.03 27);
+  --overlay: oklch(0.21 0.02 260 / 0.45);
+  --shadow-color: oklch(0.21 0.02 260 / 0.12);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: oklch(0.185 0.014 255);
+  --surface: oklch(0.215 0.016 255);
+  --surface-2: oklch(0.25 0.018 255);
+  --ink: oklch(0.94 0.012 85);
+  --ink-muted: oklch(0.8 0.012 85);
+  --line: oklch(0.32 0.018 255);
+  --line-strong: oklch(0.6 0.015 255);
+  --ring: oklch(0.76 0.1 160);
+  --accent: oklch(0.76 0.1 160);
+  --accent-ink: oklch(0.185 0.014 255);
+  --accent-soft: oklch(0.3 0.05 160);
+  --danger: oklch(0.72 0.16 25);
+  --danger-soft: oklch(0.3 0.07 25);
+  --overlay: oklch(0 0 0 / 0.6);
+  --shadow-color: oklch(0 0 0 / 0.45);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: oklch(0.185 0.014 255);
+    --surface: oklch(0.215 0.016 255);
+    --surface-2: oklch(0.25 0.018 255);
+    --ink: oklch(0.94 0.012 85);
+    --ink-muted: oklch(0.8 0.012 85);
+    --line: oklch(0.32 0.018 255);
+    --line-strong: oklch(0.6 0.015 255);
+    --ring: oklch(0.76 0.1 160);
+    --accent: oklch(0.76 0.1 160);
+    --accent-ink: oklch(0.185 0.014 255);
+    --accent-soft: oklch(0.3 0.05 160);
+    --danger: oklch(0.72 0.16 25);
+    --danger-soft: oklch(0.3 0.07 25);
+    --overlay: oklch(0 0 0 / 0.6);
+    --shadow-color: oklch(0 0 0 / 0.45);
+  }
+}
 
 @theme inline {
-  --font-heading: var(--font-sans);
-  --font-sans: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
   --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-foreground: var(--foreground);
-  --color-background: var(--background);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-overlay: var(--overlay);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --text-display: clamp(2.5rem, 1.6rem + 3.6vw, 4rem);
+  --text-display--line-height: 1.05;
+  --text-h1: clamp(2.25rem, 1.8rem + 1.8vw, 3rem);
+  --text-h1--line-height: 1.08;
+  --text-h2: clamp(1.5rem, 1.3rem + 0.9vw, 1.875rem);
+  --text-h2--line-height: 1.15;
+  --text-title: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem);
+  --text-title--line-height: 1.15;
+
+  --radius-control: 10px;
+  --radius-tile-sm: 12px;
+  --radius-tile: 16px;
+
+  --ease-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --shadow-paper:
+    0 1px 2px var(--shadow-color), 0 8px 20px -14px var(--shadow-color);
+  --shadow-lift:
+    0 2px 6px var(--shadow-color), 0 18px 40px -20px var(--shadow-color);
+
+  --animate-tile-in: tile-in 250ms var(--ease-soft) both;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+
+  @keyframes tile-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+
+  @keyframes shimmer {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
 }
 
-:root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+@utility font-display {
+  font-family: var(--font-fraunces);
+  font-optical-sizing: auto;
+  font-variation-settings: "WONK" 0;
+  letter-spacing: -0.01em;
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+@utility bento-stagger {
+  & > * {
+    animation: var(--animate-tile-in);
+  }
+  & > :nth-child(2) {
+    animation-delay: 40ms;
+  }
+  & > :nth-child(3) {
+    animation-delay: 80ms;
+  }
+  & > :nth-child(n + 4) {
+    animation-delay: 120ms;
+  }
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+  *,
+  ::before,
+  ::after {
+    border-color: var(--line);
   }
-  body {
-    @apply bg-background text-foreground;
-  }
+
   html {
-    @apply font-sans;
+    background-color: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    /* Sticky headers must not cover the heading a link jumps to. */
+    scroll-padding-top: 5rem;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
   }
+
+  body {
+    min-height: 100dvh;
+    /* Landscape phones: keep content clear of the notch. */
+    padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      animation-delay: 0ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@utility ink-worn {
+  --worn: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='70'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='7'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1.1 1.55'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  -webkit-mask-image: var(--worn);
+  mask-image: var(--worn);
+  -webkit-mask-size: 140px 70px;
+  mask-size: 140px 70px;
 }

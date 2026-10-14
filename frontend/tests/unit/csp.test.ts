@@ -23,7 +23,16 @@ describe("buildCsp", () => {
       "script-src 'self' 'nonce-abc123' 'strict-dynamic'",
     );
     expect(directive(csp, "style-src")).toBe("style-src 'self' 'nonce-abc123'");
-    expect(csp).not.toContain("unsafe");
+    expect(directive(csp, "style-src-elem")).toBe(
+      "style-src-elem 'self' 'nonce-abc123'",
+    );
+  });
+
+  it("allows inline style attributes and nothing else unsafe", () => {
+    const unsafe = buildCsp(base)
+      .split("; ")
+      .filter((entry) => entry.includes("unsafe"));
+    expect(unsafe).toEqual(["style-src-attr 'unsafe-inline'"]);
   });
 
   it("limits connect-src and img-src to self plus the given origins", () => {
@@ -49,6 +58,9 @@ describe("buildCsp", () => {
     expect(directive(csp, "script-src")).toContain("'unsafe-eval'");
     expect(directive(csp, "style-src")).toBe(
       "style-src 'self' 'unsafe-inline'",
+    );
+    expect(directive(csp, "style-src-elem")).toBe(
+      "style-src-elem 'self' 'unsafe-inline'",
     );
   });
 

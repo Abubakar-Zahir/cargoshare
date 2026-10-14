@@ -34,6 +34,7 @@ export default defineConfig([
   },
   globalIgnores([
     ".next/**",
+    ".next-bench/**",
     "out/**",
     "build/**",
     "coverage/**",
