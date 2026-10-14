@@ -23,9 +23,11 @@ If anything here conflicts with `backend.md` or `frontend.md`, those files win. 
 - **One phase at a time.** Never start a phase until the Owner writes `APPROVED: start Phase <id>`.
 - On `CHANGES: ...` fix only what is asked, then stop again.
 - **One PR per day, max 3 commits per PR.** Squash before pushing. Each commit builds and passes tests on its own.
-- Conventional Commits. Branches: `be/phase-b<n>-<slug>` and `fe/phase-f<n>-<slug>`.
-- **Never** commit to `main`, merge a PR, or force push a branch under review.
-- Push and open a PR only when the Owner writes `OPEN PR`.
+- Conventional Commits. **All work on the `release` branch.**
+- **You commit locally only.** The Owner pushes `release` and opens the PR into `main`.
+- **Never** commit to `main`, push, merge, or force push.
+- Every day before work: `git fetch origin && git rebase origin/main`. Conflicts on already-merged work mean stop and tell the Owner.
+- Everything runs on **Supabase cloud** (`cargoshare-dev` for development, `cargoshare-test` for tests only). No local Postgres or Docker. Supabase CLI via `npx supabase`.
 - Never commit secrets or `.env` files. The service role key never goes in the frontend.
 - Ambiguity means ask first. Never invent library APIs or API shapes.
 - Frontend types come only from the generated OpenAPI schema.
@@ -36,8 +38,8 @@ If anything here conflicts with `backend.md` or `frontend.md`, those files win. 
 |---|---|
 | `APPROVED: start Phase <id>` | Begin that phase |
 | `CHANGES: <list>` | Fix these items in the current phase, then stop |
-| `OPEN PR` | Squash to ≤3 commits, push, open PR with the template |
-| `PR MERGED` | Reviewer approved and merged. Update PROGRESS, wait for next approval |
+| `OPEN PR` | Squash today's work to ≤3 commits, run the gate, print PR title + body. Do not push |
+| `PR MERGED` | Reviewer merged into main. Rebase `release` on `origin/main`, update PROGRESS, wait |
 | `STATUS` | Reply with a short summary from `docs/PROGRESS.md` |
 | `PAUSE` | Stop work, update PROGRESS with exact resume point |
 
@@ -70,12 +72,22 @@ Backend (from `backend/`):
 ```
 uv run fastapi dev app/main.py
 uv run pytest -q
-supabase start | supabase db reset | supabase stop
+npx supabase link --project-ref <ref>
+npx supabase db push            (apply migrations to linked project)
+npx supabase db reset --linked  (TEST PROJECT ONLY)
 ```
 Frontend (from `frontend/`):
 ```
+nvm use                          (Node 24.21.0 from .nvmrc)
+cp .env.example .env.local       (once; build fails without the 3 public vars)
 pnpm dev
+                                 (review hub at /dev; on a phone on the same Wi-Fi open http://<computer's IP>:3000/dev)
+pnpm format
 pnpm gen:api
+pnpm exec playwright install chromium webkit
+sudo pnpm exec playwright install-deps chromium webkit   (once per machine, for WebKit)
 pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e
+CARGOSHARE_DEV_ROUTES=true pnpm build && CARGOSHARE_DEV_ROUTES=true pnpm start   (bench at /dev/bento, shell at /dev/shell)
+CHROME_PATH=<playwright chromium> npx -y lighthouse@13.5.0 http://localhost:3000/ --form-factor=mobile   (after pnpm build && pnpm start)
 ```
 Add new commands here when a phase introduces them.

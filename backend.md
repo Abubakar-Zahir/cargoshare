@@ -20,9 +20,11 @@
 - A phase may span more than one day. Plan the day so the work fits into at most 3 logical commits.
 - Before pushing, squash your local work into those ≤3 commits (`git rebase -i`). Each commit must build and pass tests on its own.
 - Commit format: Conventional Commits. `feat(trips): add trip search with cursor pagination`. Types: `feat`, `fix`, `refactor`, `test`, `chore`, `docs`, `ci`, `perf`, `security`.
-- Branch naming: `be/phase-b<n>-<short-slug>`, e.g. `be/phase-b3-trips`.
-- **Never commit to `main`. Never merge a PR. Never force push to a branch under review** unless the Reviewer asks.
-- Push and open the PR (`gh pr create`) only when the Owner says `OPEN PR`. Use the PR template in Section 0.7.
+- **Branch: all work happens on the `release` branch.** The Owner opens one PR per day from `release` into `main`.
+- You **commit locally only**. You never push, never open PRs, never merge. The Owner pushes and opens the PR.
+- When the Owner writes `OPEN PR`: squash today's work into ≤3 commits, make sure the gate is green, then print the PR title and full PR body (template in Section 0.7) so the Owner can paste it.
+- Before starting work each day, sync with main: `git fetch origin && git rebase origin/main` (main may have a squash-merged copy of yesterday's commits; if the rebase shows conflicts on already-merged work, stop and tell the Owner).
+- **Never commit to `main`. Never force push.** If a force push looks necessary, stop and ask the Owner.
 - Never commit secrets, `.env`, service role keys, or real personal data. A pre-commit secret scanner must block this.
 
 ### 0.3 How you work
@@ -40,9 +42,9 @@ mypy --strict app
 pytest -q --cov=app --cov-fail-under=85
 bandit -r app -ll
 pip-audit
-supabase db lint
+npx supabase db lint --linked
 ```
-Plus: the app boots locally, `/api/v1/health/ready` returns 200, OpenAPI schema generates without warnings, and CI is green.
+Plus: the app boots locally against the Supabase **dev** project, `/api/v1/health/ready` returns 200, OpenAPI schema generates without warnings, and CI is green.
 
 ### 0.5 Definition of Done (every phase)
 - All acceptance criteria of the phase pass and are covered by automated tests.
@@ -115,7 +117,8 @@ Escrow, real payment gateways, wallet balances, real-time chat, email notificati
 | Scheduled jobs | `pg_cron` inside Postgres |
 | Package manager | `uv` |
 | Lint / types | ruff, mypy --strict |
-| Tests | pytest, pytest-asyncio, httpx AsyncClient, local Supabase stack (`supabase start`) |
+| Tests | pytest, pytest-asyncio, httpx AsyncClient, against the dedicated Supabase **test** project |
+| Supabase CLI | Run via `npx supabase ...` (no global install, no Docker needed locally) |
 | Security tooling | bandit, pip-audit, gitleaks (pre-commit) |
 | Rate limiting | slowapi (in-memory for dev; pluggable storage for prod) |
 | Logging | structlog, JSON logs, request ID per request |
@@ -169,6 +172,11 @@ cargoshare/
 6. **IDs** are UUIDv4 (`gen_random_uuid()`), never sequential ints in URLs.
 7. **Timestamps** are `timestamptz`, stored UTC, returned ISO 8601 with offset.
 8. **Supabase pooler** (transaction mode) requires asyncpg `statement_cache_size=0` and `prepared_statement_cache_size=0`. Use the direct connection for migrations.
+9. **Everything runs on Supabase cloud. No local Postgres, no local Docker required.** Two free Supabase projects:
+   - `cargoshare-dev`: day-to-day development, manual testing, demo seed data.
+   - `cargoshare-test`: automated tests only. Tests may wipe and reset it. Never point tests at dev.
+   Migrations are applied with `npx supabase db push` to the linked project. `.env` (dev) and `.env.test` (test) hold the two projects' credentials; both are gitignored, `.env.example` documents every key.
+   A third `cargoshare-prod` project is created only in B10.
 
 ---
 
@@ -381,8 +389,8 @@ Any other transition returns `409 INVALID_TRANSITION`. Every transition writes `
 ## 7. Testing Strategy
 
 - **Unit**: state machine (every allowed and every forbidden transition), price calculation, keyword filter, pagination cursor encode/decode.
-- **Integration**: real Postgres via local Supabase stack. Each test in a transaction rolled back, or a fresh schema per session.
-- **Auth fixtures**: helper that mints valid test JWTs signed with a local test key, plus invalid variants (expired, wrong aud, wrong iss, bad signature, deactivated user).
+- **Integration**: real Supabase Postgres on the `cargoshare-test` project. Each test runs in a transaction that is rolled back; concurrency tests (which need real commits) clean up their own rows. Tests refuse to run if the configured project ref is not the test project.
+- **Auth fixtures**: test users created through the Supabase Admin API on the test project (pre-confirmed), real tokens obtained by signing in; plus a local test key with a JWKS override to mint invalid variants (expired, wrong aud, wrong iss, bad signature, deactivated user).
 - **Security suite** (`tests/security/`): IDOR on every resource, role bypass attempts, admin endpoints as normal user, mass assignment (sending `is_admin`, `is_verified`, `status`, `price` in bodies must be ignored or rejected).
 - **Concurrency suite**: 20 parallel accepts racing for the last kg, exactly the right number succeed and capacity never goes negative. 10 parallel payments with the same idempotency key produce exactly one row.
 - **DB tests**: UPDATE/DELETE on `payments` and `audit_log` raise. Check constraints reject bad data.
@@ -399,13 +407,14 @@ Each phase lists goal, tasks, acceptance criteria (AC), and a suggested commit p
 Tasks:
 - Monorepo skeleton (Section 2.4), `uv` project, pinned deps, `docs/VERSIONS.md`.
 - ruff, mypy strict, pytest config, pre-commit (ruff, mypy, gitleaks, end-of-file, trailing whitespace).
-- `supabase init`, local stack running, `config.toml` reviewed (email confirmation on, minimum password length 10, JWT expiry 1h, refresh rotation on).
-- Dockerfile (multi-stage, non-root, healthcheck) and `docker-compose.yml` for the API.
-- GitHub Actions: lint, types, tests against local Supabase, bandit, pip-audit, gitleaks.
+- `npx supabase init`, link to `cargoshare-dev`, document how to link `cargoshare-test`. Auth settings checked in the dashboard and recorded in `docs/SUPABASE_SETUP.md` (email confirmation on, minimum password length 10, JWT expiry 1h, refresh token rotation on, asymmetric JWT signing keys).
+- Dockerfile (multi-stage, non-root, healthcheck) for deployment. Built in CI only; the Owner does not need Docker locally.
+- GitHub Actions: lint, types, tests against `cargoshare-test` (credentials from GitHub Secrets), bandit, pip-audit, gitleaks, docker build.
 - ADRs from Section 2.5. PR template. `docs/PROGRESS.md`, `docs/SECURITY.md` stubs.
 AC:
-- `uv run pytest` passes with a placeholder test. CI green on the PR.
-- `docker build` succeeds, image runs as non-root.
+- `uv run pytest` passes with a placeholder test that connects to `cargoshare-test`. CI green on the PR.
+- CI builds the Docker image and verifies it runs as non-root.
+- `docs/SUPABASE_SETUP.md` lets the Owner create both projects and fill `.env` / `.env.test` step by step.
 - Pre-commit blocks a fake committed secret (prove with a test run in the report, then remove).
 Commits: `chore: scaffold backend monorepo and tooling` / `ci: add github actions pipeline` / `docs: add ADRs and project docs`
 
@@ -433,8 +442,8 @@ Tasks:
 - SQLAlchemy models mirroring tables. A test asserts models and DB columns match.
 - `GET/PATCH /me` (display_name, roles; enforce at least one role, matching DB check), `GET /users/{username}` (public profile + rating summary).
 AC:
-- `supabase db reset` applies cleanly from zero.
-- Anon and authenticated Supabase keys cannot select from any public table (test via PostgREST).
+- All migrations apply cleanly from zero on `cargoshare-test` (`npx supabase db reset --linked`), and with `db push` on `cargoshare-dev`.
+- Data API (PostgREST) is disabled on both projects, so anon and authenticated keys have no REST access to tables. As a second layer, a SQL test asserts RLS is enabled on every public table and that `anon` and `authenticated` hold no table privileges in `public`.
 - PATCH /me ignores or rejects `is_admin`, `is_verified`, `is_active` (mass assignment test).
 - Signup through Supabase Auth creates a profile row automatically.
 Commits: `feat(db): core schema, constraints, rls and triggers` / `feat(profiles): me and public profile endpoints` / `test(profiles): rls lockdown and mass assignment`
