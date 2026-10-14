@@ -7,7 +7,8 @@ export default defineConfig({
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
   test: {
-    environment: "node",
-    include: ["tests/unit/**/*.test.ts"],
+    environment: "jsdom",
+    include: ["tests/unit/**/*.test.{ts,tsx}"],
+    setupFiles: ["tests/unit/setup.ts"],
   },
 });

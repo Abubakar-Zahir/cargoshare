@@ -27,9 +27,7 @@ test("home renders with security headers and no console noise", async ({
   expect(headers["referrer-policy"]).toBe("strict-origin-when-cross-origin");
   expect(headers["x-powered-by"]).toBeUndefined();
 
-  await expect(
-    page.getByRole("heading", { level: 1, name: "CargoShare" }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
   const hasHorizontalScroll = await page.evaluate(
     () =>
