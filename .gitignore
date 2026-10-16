@@ -1,0 +1,39 @@
+# Secrets: never commit real env files
+.env
+.env.*
+!.env.example
+
+# Tests kept out of git for now (Owner decision 2026-10-15)
+local-tests/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+coverage/
+playwright-report/
+test-results/
+blob-report/
+.pnpm-store/
+
+# Supabase CLI local state
+supabase/.temp/
+supabase/.branches/
+
+# Editors and OS
+.DS_Store
+.idea/
+.vscode/
