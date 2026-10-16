@@ -4,7 +4,6 @@ This file is the **order of work**. It says which feature is built in which PR, 
 
 - `backend.md` and `frontend.md` are the **specs**: architecture, data model, business rules, security, design. They say *how* things must be built.
 - This file says *what comes next*.
-
 - `docs/PROGRESS.md` records what actually happened.
 
 If this file and a phase list inside `backend.md` or `frontend.md` disagree, **this file wins**. The old phase lists (B0 to B10, F0 to F11) are kept only as reference.
@@ -20,7 +19,7 @@ Rules for every PR:
 | Rule | Detail |
 |---|---|
 | One feature | One PR does one thing a person can see or test. |
-| 10 to 15 files | Count the files changed in the PR. Lockfiles (`pnpm-lock.yaml`, `uv.lock`), generated files (`schema.d.ts`, `docs/openapi.json`) and `docs/PROGRESS.md` / `docs/LEARNING.md` do not count. If a feature needs more than 15, split it into two PRs. |
+| 10 to 15 files | Count the files changed in the PR. Lockfiles (`pnpm-lock.yaml`, `uv.lock`), generated files (`schema.d.ts`, `docs/openapi.json`) and `docs/PROGRESS.md` do not count. If a feature needs more than 15, split it into two PRs. |
 | Max 3 commits | Squashed before pushing. Each commit builds and passes tests on its own. |
 | Tests inside | Every PR ships its own tests. The Reviewer must be able to watch them run (see "Demo" in the PR body). |
 | Nothing ahead | No file is added for a later PR. No placeholder pages. |

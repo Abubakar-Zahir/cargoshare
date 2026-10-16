@@ -12,8 +12,6 @@ Read this file at the start of **every** session. It is short on purpose.
 
 The phase lists inside `backend.md` (B0 to B10) and `frontend.md` (F0 to F11) are **reference only**. The order comes from `docs/ROADMAP.md`. If two files conflict, stop and ask the Owner.
 
-The rejected first attempt (PR #2) is kept on the branch `archive/pr2-frontend-f0-f2`. You may **read** it for ideas. You never merge or cherry-pick it. Every file is written again inside the PR that needs it.
-
 ## 2. Session start checklist
 1. Read this file.
 2. Read `docs/PROGRESS.md`: current step and status.
