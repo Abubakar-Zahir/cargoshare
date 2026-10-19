@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
+import { APP_DESCRIPTION, APP_NAME } from "@/lib/constants";
+
 export const metadata: Metadata = {
-  title: "CargoShare",
-  description: "Send small items with travelers going your way.",
+  title: APP_NAME,
+  description: APP_DESCRIPTION,
 };
 
 const RootLayout = ({ children }: Readonly<{ children: ReactNode }>) => (

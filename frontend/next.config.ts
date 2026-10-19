@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 import "./src/env";
+import { HSTS_MAX_AGE_SECONDS } from "./src/lib/constants";
 
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -8,7 +9,12 @@ const securityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
   ...(process.env.NODE_ENV === "production"
-    ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" }]
+    ? [
+        {
+          key: "Strict-Transport-Security",
+          value: `max-age=${String(HSTS_MAX_AGE_SECONDS)}; includeSubDomains`,
+        },
+      ]
     : []),
 ];
 

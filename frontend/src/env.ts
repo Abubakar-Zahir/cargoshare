@@ -1,16 +1,19 @@
 import { z } from "zod";
 
+import {
+  FORBIDDEN_ENV_VARIABLES,
+  PUBLISHABLE_KEY_PREFIX,
+  SECRET_KEY_PREFIX,
+} from "./lib/constants";
+
 const publicEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.url(),
-  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().startsWith("sb_publishable_"),
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().startsWith(PUBLISHABLE_KEY_PREFIX),
   NEXT_PUBLIC_API_URL: z.url(),
   NEXT_PUBLIC_SITE_URL: z.url(),
 });
 
 export type PublicEnv = z.infer<typeof publicEnvSchema>;
-
-const FORBIDDEN_VARIABLES = ["SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SECRET_KEY"];
-const SECRET_KEY_PREFIX = "sb_secret_";
 
 const isServiceRoleJwt = (value: string): boolean => {
   const parts = value.split(".");
@@ -36,7 +39,7 @@ export const findSecretKeys = (source: NodeJS.ProcessEnv): string[] =>
     .filter(
       ([name, value]) =>
         value !== undefined &&
-        (FORBIDDEN_VARIABLES.includes(name) ||
+        (FORBIDDEN_ENV_VARIABLES.includes(name) ||
           value.startsWith(SECRET_KEY_PREFIX) ||
           isServiceRoleJwt(value)),
     )
