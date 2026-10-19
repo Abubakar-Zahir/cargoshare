@@ -1,5 +1,6 @@
 export const APP_NAME = "CargoShare";
 export const APP_DESCRIPTION = "Send small items with travelers going your way.";
+export const HOME_MESSAGE = "The frontend is set up. Features arrive in the next pull requests.";
 
 // Supabase key formats: the publishable key may reach the browser, secret keys never may.
 export const PUBLISHABLE_KEY_PREFIX = "sb_publishable_";
