@@ -1,3 +1,8 @@
+// Checks the frontend's environment variables once, when the app starts or builds
+// (next.config.ts imports this file), and stops with a clear error if:
+// - one of the 4 public settings is missing or malformed, or
+// - any Supabase secret / service role key is present (it would be exposed to browsers).
+// Other files import `env` from here instead of reading process.env directly.
 import { z } from "zod";
 
 import {
