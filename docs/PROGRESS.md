@@ -6,43 +6,46 @@
 ## Current Step
 | Field | Value |
 |---|---|
-| Step | Step 0: Setup |
-| Status | PR OPEN (backend setup; Owner pushes and opens the PR) |
-| Branch | release (branched from `main` at `adef8a0`) |
-| Next step | Owner pushes `release` and opens the PR. Still open: Supabase projects + refs, `/health/ready` against the real DB, conftest dev-refusal proof, Section 10 questions. Frontend setup comes after. |
+| Step | PR2: Frontend setup |
+| Status | PR OPEN (Owner pushes `frontend_setup` and opens the PR) |
+| Branch | `frontend_setup` (from `origin/main` at `10e0cf6`, Owner decision 2026-10-19) |
+| Next step | Owner pushes and opens PR2. Still owed: the 6 teaching questions for PR2. Then PR3 (profiles table). |
 
 ## Steps
+> Renumbered 2026-10-16: backend setup is PR1, frontend setup is PR2, old PR1 to PR28 are now PR3 to PR30. History below keeps the old numbers.
+
 | Step | Feature | Target | Status | PR | Merged on |
 |---|---|---|---|---|---|
-| 0 | Setup: backend part as a PR (Owner decision) | 15 to 16 Oct | PR OPEN | backend setup | |
-| PR1 | Profiles table and lockdown | 19 Oct | NOT STARTED | | |
-| PR2 | Backend auth and /me | 20 Oct | NOT STARTED | | |
-| PR3 | Design basics | 21 Oct | NOT STARTED | | |
-| PR4 | Signup and login | 22 Oct | NOT STARTED | | |
-| PR5 | Logout, password reset, protected pages | 23 Oct | NOT STARTED | | |
-| PR6 | App shell and Dashboard v1 | 26 Oct | NOT STARTED | | |
-| PR7 | Landing and public pages | 27 Oct | NOT STARTED | | |
-| PR8 | Trips API | 28 Oct | NOT STARTED | | |
-| PR9 | Trip search API | 29 Oct | NOT STARTED | | |
-| PR10 | My trips screen | 30 Oct | NOT STARTED | | |
-| PR11 | Post and edit a trip | 2 Nov | NOT STARTED | | |
-| PR12 | Search and trip detail | 3 Nov | NOT STARTED | | |
-| PR13 | Shipment requests API | 4 Nov | NOT STARTED | | |
-| PR14 | Accept, decline, cancel | 5 Nov | NOT STARTED | | |
-| PR15 | Send a request and Requests page | 6 Nov | NOT STARTED | | |
-| PR16 | Payments API | 9 Nov | NOT STARTED | | |
-| PR17 | Shipments screens | 10 Nov | NOT STARTED | | |
-| PR18 | Pay and Wallet | 11 Nov | NOT STARTED | | |
-| PR19 | File uploads and ID verification API | 12 Nov | NOT STARTED | | |
-| PR20 | Handoff, delivery, disputes API | 13 Nov | NOT STARTED | | |
-| PR21 | Handoff, delivery, disputes screens | 16 Nov | NOT STARTED | | |
-| PR22 | Ratings and dashboard API | 17 Nov | NOT STARTED | | |
-| PR23 | Dashboard v2 and rating | 18 Nov | NOT STARTED | | |
-| PR24 | Profile, settings, verification | 19 Nov | NOT STARTED | | |
-| PR25 | Admin API | 20 Nov | NOT STARTED | | |
-| PR26 | Admin console | 23 Nov | NOT STARTED | | |
-| PR27 | Backend hardening and deploy | 24 Nov | NOT STARTED | | |
-| PR28 | Frontend polish and deploy | 25 Nov | NOT STARTED | | |
+| PR1 | Backend setup | 15 to 16 Oct | DONE | #4 | 2026-10-19 |
+| PR2 | Frontend setup | 19 Oct | PR OPEN | branch `frontend_setup` | |
+| PR3 | Profiles table and lockdown | 20 Oct | NOT STARTED | | |
+| PR4 | Backend auth and /me | 21 Oct | NOT STARTED | | |
+| PR5 | Design basics | 22 Oct | NOT STARTED | | |
+| PR6 | Signup and login | 23 Oct | NOT STARTED | | |
+| PR7 | Logout, password reset, protected pages | 26 Oct | NOT STARTED | | |
+| PR8 | App shell and Dashboard v1 | 27 Oct | NOT STARTED | | |
+| PR9 | Landing and public pages | 28 Oct | NOT STARTED | | |
+| PR10 | Trips API | 29 Oct | NOT STARTED | | |
+| PR11 | Trip search API | 30 Oct | NOT STARTED | | |
+| PR12 | My trips screen | 2 Nov | NOT STARTED | | |
+| PR13 | Post and edit a trip | 3 Nov | NOT STARTED | | |
+| PR14 | Search and trip detail | 4 Nov | NOT STARTED | | |
+| PR15 | Shipment requests API | 5 Nov | NOT STARTED | | |
+| PR16 | Accept, decline, cancel | 6 Nov | NOT STARTED | | |
+| PR17 | Send a request and Requests page | 9 Nov | NOT STARTED | | |
+| PR18 | Payments API | 10 Nov | NOT STARTED | | |
+| PR19 | Shipments screens | 11 Nov | NOT STARTED | | |
+| PR20 | Pay and Wallet | 12 Nov | NOT STARTED | | |
+| PR21 | File uploads and ID verification API | 13 Nov | NOT STARTED | | |
+| PR22 | Handoff, delivery, disputes API | 16 Nov | NOT STARTED | | |
+| PR23 | Handoff, delivery, disputes screens | 17 Nov | NOT STARTED | | |
+| PR24 | Ratings and dashboard API | 18 Nov | NOT STARTED | | |
+| PR25 | Dashboard v2 and rating | 19 Nov | NOT STARTED | | |
+| PR26 | Profile, settings, verification | 20 Nov | NOT STARTED | | |
+| PR27 | Admin API | 23 Nov | NOT STARTED | | |
+| PR28 | Admin console | 24 Nov | NOT STARTED | | |
+| PR29 | Backend hardening and deploy | 25 Nov | NOT STARTED | | |
+| PR30 | Frontend polish and deploy | 26 Nov | NOT STARTED | | |
 
 ## Daily Log
 <!-- Newest on top. Template:
@@ -54,6 +57,30 @@
 - Next:
 - Notes:
 -->
+
+### 2026-10-19 | PR2 frontend setup
+- PR1 (#4) merged into `main` (`10e0cf6`).
+- Owner decision: PR2 lives on a new branch `frontend_setup` made from `origin/main` (not `release`). Upstream unset so a plain push cannot reach `main`.
+- Teaching for PR2 posted in chat; the 6 questions are not answered yet (Owner chose to open the PR first).
+- Gate green: lint, typecheck, prettier, build; backend ruff, mypy, bandit; pre-commit.
+- 3 commits made; Owner to push with `git push -u origin frontend_setup` and open the PR into `main`.
+
+### 2026-10-16 | Step 0 (backend setup PR)
+- 20:00 PKT: `/health/ready` returns 200 from `cargoshare-dev` after the Owner removed `?pgbouncer=true` from `DATABASE_URL`.
+- Owner decisions: logging fix goes into PR2 (option B). Tests paused until the Owner says (no test files in new PRs). Next PR may start once the current PR is opened. Renumbered: PR1 backend setup, PR2 frontend setup, PR3 to PR30 = old PR1 to PR28. Next.js 16.4.1 (16.4.2 younger than 24 h).
+- Reviewer comments on PR1 (suffyan-zafar): CI too early (focus on implementation first); move the db timeout to a constants file; "why we need this" on config.py (open). Owner chose 2 changes for PR1: `backend.yml` deleted, `CONNECT_TIMEOUT_SECONDS` moved to `app/core/constants.py`. PR1 rebuilt as 2 commits (`4a93daa`, `cd25612`); backup of the old commits on local branch `backup/pr1-before-review`. Owner to update the PR with `git push --force-with-lease origin release`.
+- PR2 plan change: drop `.github/workflows/frontend.yml` too (same Reviewer feedback: no CI yet).
+- 20:55 PKT: Owner: "now move to frontend", PR2 started (14 files).
+- 21:10 PKT: PR2 built, 15 counted files. Next.js 16.4.1, React 19.3.1, TypeScript 6.0.3, ESLint 10.12.0, typescript-eslint 8.71.2, eslint-plugin-jsx-a11y 6.10.2, Prettier 3.9.10, zod 4.6.7, pnpm 12.14.0.
+- Decision: ESLint 10.12.0 instead of 9.39.5. ESLint 9 is end of life ("no longer supported"). eslint-plugin-react, -import and -jsx-a11y still declare peer `eslint ^9`, but a probe file proved next, react and jsx-a11y strict rules all run on 10. Revisit if a plugin breaks.
+- `allowBuilds: unrs-resolver: false` in `frontend/pnpm-workspace.yaml` (its prebuilt binary is an optional dependency; the postinstall script is not needed).
+- `.pre-commit-config.yaml`: check-yaml excludes `frontend/pnpm-lock.yaml` (pnpm 12 writes several YAML documents in one file). 15th file of PR2.
+- Proofs: pnpm refused eslint 10.13.0 (published 14:24 UTC, inside the 24 h cutoff); build fails on a missing variable, on `SUPABASE_SERVICE_ROLE_KEY`, and on an `sb_secret_` value; production build serves all security headers and a new CSP nonce per request on all 9 scripts.
+- PR2 scope cut to fit 15 files: no Tailwind (moves to PR5), no Vitest or Playwright (tests paused), no `.prettierignore`, Supabase CLI files move to PR3, `VERSIONS.md` / `SECURITY.md` dropped from setup (versions live in PROGRESS; SECURITY.md is in PR29).
+- Owner opened the backend setup as a PR (calls it PR1). Merge status not visible here (`git fetch` could not reach github.com).
+- Found and fixed (uncommitted): crash logs included every frame's local values (structlog `dict_tracebacks` has `show_locals=True` by default), so a DB connection error wrote the database password into the log. Now `ExceptionDictTransformer(show_locals=False)`. Regression test `test_crash_log_does_not_include_local_values` fails before the fix, passes after. The leaked log existed only on this laptop and was deleted.
+- `/health/ready` against dev: URL now real (pooler, port 6543) but contains `?pgbouncer=true`, which asyncpg rejects (`connect() got an unexpected keyword argument 'pgbouncer'`). Owner to remove it from `backend/.env`.
+- Open: how the logging fix reaches the PR (max 3 commits); PR renumbering (frontend setup as PR2 or later).
 
 ### 2026-10-15 | Step 0
 - Done: Owner approved Step 0 plan (`APPROVED: start Step 0`). Fresh clone, no archive branch. LEARNING.md dropped (teaching in chat). Archive sentence removed from CLAUDE.md.
@@ -116,7 +143,7 @@ _none yet_
 
 ## Blockers
 <!-- Format: - [ ] YYYY-MM-DD: blocker, impact, who can unblock -->
-_none_
+- [x] 2026-10-16: logging fix (password could reach crash logs) is not in the open PR1. Owner chose to ship it in PR2 (2026-10-16). Resolved 2026-10-19: in PR2, commit `fix(backend)`.
 
 ## Known Limitations / Tech Debt
 _none yet_
