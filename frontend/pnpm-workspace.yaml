@@ -1,0 +1,8 @@
+# Settings only (this is not a monorepo workspace).
+# Supply-chain rule: never install a package version younger than 24 hours.
+minimumReleaseAge: 1440
+
+# Dependency install scripts are blocked unless reviewed here.
+# unrs-resolver: its prebuilt binary ships as an optional dependency, so the script is not needed.
+allowBuilds:
+  unrs-resolver: false
