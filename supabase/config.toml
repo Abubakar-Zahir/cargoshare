@@ -1,0 +1,6 @@
+# Supabase CLI settings. We only use Supabase cloud (link, migration list, db push),
+# so nothing for running Supabase locally is needed here.
+project_id = "cargoshare"
+
+[db]
+major_version = 17
