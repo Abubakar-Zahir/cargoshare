@@ -221,12 +221,13 @@ File lists are the **expected** files. Claude Code may adjust names while buildi
 - Moved out: Tailwind (to PR5 with the design tokens), tests (paused), Supabase CLI files (to PR3 with the first migration)
 **Done when:** `pnpm dev` shows the placeholder page; `pnpm build` fails on a missing variable and on a service role key.
 
-### PR3: Profiles table and database lockdown (~10 files)
-`migrations/0001_enums_and_helpers.sql`, `migrations/0002_profiles.sql` (table, checks, `updated_at` trigger, profile created on signup, RLS on), `app/models/base.py`, `app/models/profile.py`, `tests/conftest.py`, `tests/db/test_rls_lockdown.py`, `tests/db/test_profile_trigger.py`, `tests/db/test_profile_constraints.py`, `tests/db/test_models_match_db.py`, `docs/ERD.md` (generated from the real schema)
-**Demo:** sign up a user in the Supabase dashboard, see the profile row appear; run the lockdown tests.
+### PR3: Profiles table and database lockdown (7 files)
+`supabase/config.toml` and `supabase/.gitignore` (from `supabase init`), `migrations/<ts>_helpers_and_lockdown.sql` (browser roles lose default rights, `citext`, `set_updated_at()`), `migrations/<ts>_profiles.sql` (table, checks, `updated_at` trigger, profile created on signup, RLS on), `docs/ERD.md` (generated from the real schema), `docs/SUPABASE_SETUP.md`, this roadmap
+Moved to PR4: `app/models/base.py`, `app/models/profile.py` (first used there). Moved to PR29: the limited backend database user (Owner decision 2026-10-20). Tests paused.
+**Demo:** `npx supabase@2.121.0 db push`; add a user in the dashboard and see the profile row appear; the browser roles are refused.
 
 ### PR4: Backend auth and "who am I" (~13 files)
-`app/core/security.py` (JWT check via JWKS), `app/api/deps.py` (current user), `app/schemas/profile.py`, `app/repos/profiles.py`, `app/services/profiles.py`, `app/api/v1/me.py` (`GET/PATCH /me`), `app/api/v1/users.py` (`GET /users/{username}`), `app/api/v1/router.py`, `tests/helpers/tokens.py`, `tests/security/test_jwt_failures.py`, `tests/integration/test_me.py`, `tests/integration/test_users.py`, `tests/security/test_mass_assignment.py`
+`app/models/base.py`, `app/models/profile.py` (moved from PR3), `app/core/security.py` (JWT check via JWKS), `app/api/deps.py` (current user), `app/schemas/profile.py`, `app/repos/profiles.py`, `app/services/profiles.py`, `app/api/v1/me.py` (`GET/PATCH /me`), `app/api/v1/users.py` (`GET /users/{username}`), `app/api/v1/router.py`, `tests/helpers/tokens.py`, `tests/security/test_jwt_failures.py`, `tests/integration/test_me.py`, `tests/integration/test_users.py`, `tests/security/test_mass_assignment.py`
 **Demo:** curl `/me` with no token (401), a bad token (401), a real token (200).
 
 ### PR5: Design basics (~14 files)
@@ -326,7 +327,7 @@ Tailwind install (`postcss.config.mjs`, moved here from setup), `src/app/globals
 **Demo:** approve an ID and resolve a dispute.
 
 ### PR29: Backend hardening and deploy (~10 files)
-`load/search.js` (k6), `docs/SECURITY.md`, `docs/API.md`, `docs/DEPLOY_BACKEND.md`, `docs/RUNBOOK.md`, `app/core/config.py` (production settings), `app/main.py` (docs off in production), `supabase/seed.sql`, `tests/integration/test_production_settings.py`, `.github/workflows/backend.yml`
+`migrations/<ts>_backend_role.sql` (limited `cargoshare_backend` user: data access only, bypasses RLS; `GRANT ... ON ALL TABLES` + default privileges for future tables; switch `DATABASE_URL`), `load/search.js` (k6), `docs/SECURITY.md`, `docs/API.md`, `docs/DEPLOY_BACKEND.md`, `docs/RUNBOOK.md`, `app/core/config.py` (production settings), `app/main.py` (docs off in production), `supabase/seed.sql`, `tests/integration/test_production_settings.py`, `.github/workflows/backend.yml`
 **Demo:** load test numbers, live API URL.
 
 ### PR30: Frontend polish and deploy (~12 files)
