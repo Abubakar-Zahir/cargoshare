@@ -6,10 +6,10 @@
 ## Current Step
 | Field | Value |
 |---|---|
-| Step | PR2: Frontend setup |
-| Status | PR OPEN (Owner pushes `frontend_setup` and opens the PR) |
-| Branch | `frontend_setup` (from `origin/main` at `10e0cf6`, Owner decision 2026-10-19) |
-| Next step | Owner pushes and opens PR2. Still owed: the 6 teaching questions for PR2. Then PR3 (profiles table). |
+| Step | PR3: Profiles table and database lockdown |
+| Status | PR OPEN (Owner pushes `profiles_table`; PR2 reviewed, waiting for merge) |
+| Branch | `profiles_table` (from `frontend_setup` at `1f2fce3`; PR2 reviewed, not merged yet) |
+| Next step | Owner pushes `profiles_table` and opens PR3 into `main` (ideally after PR2 is merged). Then PR4: backend auth and `/me`. |
 
 ## Steps
 > Renumbered 2026-10-16: backend setup is PR1, frontend setup is PR2, old PR1 to PR28 are now PR3 to PR30. History below keeps the old numbers.
@@ -18,7 +18,7 @@
 |---|---|---|---|---|---|
 | PR1 | Backend setup | 15 to 16 Oct | DONE | #4 | 2026-10-19 |
 | PR2 | Frontend setup | 19 Oct | PR OPEN | branch `frontend_setup` | |
-| PR3 | Profiles table and lockdown | 20 Oct | NOT STARTED | | |
+| PR3 | Profiles table and lockdown | 20 Oct | PR OPEN | branch `profiles_table` | |
 | PR4 | Backend auth and /me | 21 Oct | NOT STARTED | | |
 | PR5 | Design basics | 22 Oct | NOT STARTED | | |
 | PR6 | Signup and login | 23 Oct | NOT STARTED | | |
@@ -57,6 +57,27 @@
 - Next:
 - Notes:
 -->
+
+### 2026-10-20 | PR3 profiles table (restart)
+- PR2 review comments all fixed as new commits (arrow functions, constants file, content via props, `@/` imports, CSP and header constants, env.ts comment); Reviewer cleared PR2. Owner dropped the proxy.ts comments commit. Last push `1f2fce3`.
+- Owner decision: the limited backend user (`cargoshare_backend`) is postponed to PR29; the backend keeps using `postgres` on dev. RLS lockdown and default-privilege revokes stay in PR3. Added to "Do before production".
+- `APPROVED: start PR3`. Branch `profiles_table` recreated from `frontend_setup`; stashed PR3 work restored; backend role migration, setup section and `.env.example` change removed. 7 counted files.
+- Owner pushed the migrations (`db push`); live check passed (test user got `user_cbbd2241`).
+- Pre-commit review ("anything useless?"): `supabase/config.toml` cut from 415 lines to the 4 the CLI needs (tested with `migration list`); display-name rule written once as `is_valid_display_name()` (the 60 limit was in two places); redundant `revoke` on `set_updated_at()` removed. Signup now leaves an invalid display name empty instead of truncating it.
+- Because the migrations were already applied on dev (and PR3 is not merged): dropped PR3's objects on dev, `migration repair --status reverted` both versions, `db push` the corrected files. Live: table, RLS, trigger, 4 functions, 0 browser grants. The old test user has no profile (created before the re-apply); Owner to delete and re-create it. `rls_auto_enable()` in public is Supabase's automatic-RLS helper, not ours.
+- Re-created test user got `user_ddc1a995` automatically; 0 users without a profile; `anon` refused.
+- 2 commits on `profiles_table` (no Claude attribution).
+- Reviewer lessons saved for every PR: arrow functions, constants, content via props, `@/` imports, justify every non-feature file in the PR body, no CI/tooling yet.
+
+### 2026-10-19 | PR3 profiles table
+- PR2 pushed by the Owner (`origin/frontend_setup`).
+- `APPROVED` (Owner: "sure lets go ahead"): PR3 with all suggestions: branch `profiles_table` from `frontend_setup`; dedicated `cargoshare_backend` role in this PR (password set by the Owner in the SQL editor); username fallback `user_` + first 8 hex of the id; migrations to dev only (test project not created yet); SQLAlchemy models move to PR4 (no unused code). 9 counted files (one under the guideline, agreed).
+
+- PR3 built (9 counted files): `supabase init` (CLI 2.121.0), 3 migrations, `docs/ERD.md` generated from the real schema, setup docs, `.env.example`. Signup trigger kept inside the profiles migration (3 migrations, not 4).
+- Read-only check of dev: Postgres 17.11; `postgres` is not superuser but has CREATEROLE and BYPASSRLS; Supabase default privileges give `anon`/`authenticated` all rights on new tables, sequences and functions in `public` (now revoked by default). Global PUBLIC EXECUTE on functions also revoked.
+- Dry run on dev inside a rolled-back transaction: signup creates the profile (username lowercased; taken or invalid username gets `user_<8 hex>`; `is_admin`/`is_verified` in metadata ignored); `anon`/`authenticated` refused on SELECT/INSERT and cannot execute the functions; `cargoshare_backend` can read and write rows but not DROP/ALTER/CREATE TABLE, read `auth`, or CREATE ROLE; all check constraints fire. After rollback nothing remained on dev.
+- Pooler user for a custom role is `cargoshare_backend.<ref>` (Supabase troubleshooting doc "Tenant or user not found").
+- Waiting on Owner: `supabase login`, `link`, `db push`, set the role password, switch `backend/.env`.
 
 ### 2026-10-19 | PR2 frontend setup
 - PR1 (#4) merged into `main` (`10e0cf6`).
@@ -144,6 +165,13 @@ _none yet_
 ## Blockers
 <!-- Format: - [ ] YYYY-MM-DD: blocker, impact, who can unblock -->
 - [x] 2026-10-16: logging fix (password could reach crash logs) is not in the open PR1. Owner chose to ship it in PR2 (2026-10-16). Resolved 2026-10-19: in PR2, commit `fix(backend)`.
+
+## Do before production
+<!-- Postponed on purpose. Every item must be done before real users. -->
+- [ ] 2026-10-20: Limited backend database user `cargoshare_backend` (data access only, bypasses RLS); grant on all tables + default privileges; switch `DATABASE_URL` off `postgres` (PR29).
+- [ ] 2026-10-20: Supabase Auth dashboard settings: email confirmation, minimum password length 10, JWT expiry 3600, refresh token rotation, asymmetric signing keys (before PR6 signup at the latest).
+- [ ] 2026-10-20: Tests back in git and CI workflows (paused by the Owner and the Reviewer).
+- [ ] 2026-10-20: Answer the PR1 Reviewer comment "why we need this?" on `config.py` (line unknown).
 
 ## Known Limitations / Tech Debt
 _none yet_

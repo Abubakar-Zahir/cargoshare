@@ -50,7 +50,7 @@ Only the two project refs may be shared in chat. Everything else stays on your m
 
 | Value | Where to find it | Goes into |
 |---|---|---|
-| Transaction pooler connection string (port **6543**) | **Connect** button (top of the project) → **Transaction pooler** | `backend/.env` (dev) / `backend/.env.test` (test) as `DATABASE_URL`, with `[YOUR-PASSWORD]` replaced |
+| Transaction pooler connection string (port **6543**) | **Connect** button (top of the project) → **Transaction pooler** | `backend/.env` (dev) / `backend/.env.test` (test) as `DATABASE_URL`, with `[YOUR-PASSWORD]` replaced. |
 | Project URL `https://<ref>.supabase.co` | `…/project/<ref>/settings/api` | `frontend/.env.local` as `NEXT_PUBLIC_SUPABASE_URL` (dev project) |
 | Publishable key `sb_publishable_…` | `…/project/<ref>/settings/api-keys` | `frontend/.env.local` as `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (dev project) |
 
@@ -75,15 +75,15 @@ npx supabase@2.121.0 link --project-ref <test-ref>
 ```
 `npx supabase@2.121.0 db reset --linked` is allowed **only** while the test project is linked.
 
-## 7. GitHub Actions
-Repository → **Settings → Secrets and variables → Actions**.
+## 7. Apply the migrations
+Database changes live in `supabase/migrations/` as numbered SQL files. They are applied in order, once each, and never edited after they are applied.
 
-| Kind | Name | Value |
-|---|---|---|
-| Variable | `NEXT_PUBLIC_SUPABASE_URL` | `https://<test-ref>.supabase.co` |
-| Variable | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Test project publishable key |
-| Variable | `NEXT_PUBLIC_API_URL` | `http://localhost:8000` |
-| Variable | `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` |
+With the dev project linked (section 6), from the repository root:
+```
+npx supabase@2.121.0 migration list    # which files are applied on the linked project
+npx supabase@2.121.0 db push           # apply the new ones (asks to confirm)
+```
+`db push` runs as the admin user, using the database password you typed during `link`.
 
 ## 8. Free plan notes
 - Free projects pause after about a week without activity. Open the project in the dashboard and click **Restore** to wake it.
