@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
-import "./src/env";
-import { HSTS_HEADER, SECURITY_HEADERS } from "./src/lib/constants";
+import "@/env";
+import { HSTS_HEADER, SECURITY_HEADERS } from "@/lib/constants";
 
 const securityHeaders = [
   ...SECURITY_HEADERS,

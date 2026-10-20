@@ -3,13 +3,18 @@
 // - one of the 4 public settings is missing or malformed, or
 // - any Supabase secret / service role key is present (it would be exposed to browsers).
 // Other files import `env` from here instead of reading process.env directly.
+//
+// Note: this file is loaded by next.config.ts, and Next.js compiles that chain without
+// telling the compiler where each file is, so an "@/" import here would be resolved as
+// if this file sat at the project root (src/src/...). That is why the constants import
+// below is relative. Everywhere else we use "@/".
 import { z } from "zod";
 
 import {
   FORBIDDEN_ENV_VARIABLES,
   PUBLISHABLE_KEY_PREFIX,
   SECRET_KEY_PREFIX,
-} from "./lib/constants";
+} from "./lib/constants"; // relative on purpose: see the note below
 
 const publicEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.url(),
