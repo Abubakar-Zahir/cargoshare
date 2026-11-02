@@ -34,3 +34,21 @@ repos:
         language: system
         files: ^backend/.*\.py$
         pass_filenames: false
+      - id: frontend-eslint
+        name: eslint (frontend)
+        entry: pnpm --dir frontend lint
+        language: system
+        files: ^frontend/
+        pass_filenames: false
+      - id: frontend-typecheck
+        name: typescript (frontend)
+        entry: pnpm --dir frontend typecheck
+        language: system
+        files: ^frontend/
+        pass_filenames: false
+      - id: frontend-prettier
+        name: prettier (frontend)
+        entry: pnpm --dir frontend format:check
+        language: system
+        files: ^frontend/
+        pass_filenames: false
