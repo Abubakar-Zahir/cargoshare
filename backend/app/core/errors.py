@@ -1,11 +1,13 @@
 from http import HTTPStatus
-from typing import Any
+from typing import Any, ClassVar
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from app.core.constants import SIGN_IN_REQUIRED_HEADERS
 
 
 class ErrorBody(BaseModel):
@@ -27,11 +29,25 @@ class AppError(Exception):
     status_code = HTTPStatus.INTERNAL_SERVER_ERROR
     code = "INTERNAL_ERROR"
     message = "Something went wrong on our side."
+    headers: ClassVar[dict[str, str]] = {}
 
     def __init__(self, message: str | None = None, details: dict[str, Any] | None = None) -> None:
         super().__init__(message or self.message)
         self.message = message or self.message
         self.details = details or {}
+
+
+class UnauthorizedError(AppError):
+    status_code = HTTPStatus.UNAUTHORIZED
+    code = "UNAUTHENTICATED"
+    message = "Please sign in."
+    headers = SIGN_IN_REQUIRED_HEADERS
+
+
+class RoleRequiredError(AppError):
+    status_code = HTTPStatus.UNPROCESSABLE_CONTENT
+    code = "ROLE_REQUIRED"
+    message = "Choose at least one: send things or carry things."
 
 
 class ServiceUnavailableError(AppError):
@@ -58,7 +74,11 @@ def _request_id(request: Request) -> str:
 
 
 async def _handle_app_error(request: Request, exc: AppError) -> JSONResponse:
-    return error_response(exc.status_code, exc.code, exc.message, _request_id(request), exc.details)
+    response = error_response(
+        exc.status_code, exc.code, exc.message, _request_id(request), exc.details
+    )
+    response.headers.update(exc.headers)
+    return response
 
 
 async def _handle_http_error(request: Request, exc: StarletteHTTPException) -> JSONResponse:

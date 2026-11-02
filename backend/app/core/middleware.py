@@ -6,10 +6,15 @@ import structlog
 from starlette.datastructures import Headers, MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from app.core.errors import error_response
+from app.core.constants import (
+    HSTS_HEADERS,
+    REQUEST_ID_HEADER,
+    SECURITY_HEADERS,
+    VALID_REQUEST_ID_PATTERN,
+)
+from app.core.errors import AppError, error_response
 
-REQUEST_ID_HEADER = "X-Request-ID"
-_VALID_REQUEST_ID = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
+_VALID_REQUEST_ID = re.compile(VALID_REQUEST_ID_PATTERN)
 
 logger = structlog.get_logger(__name__)
 
@@ -38,7 +43,7 @@ class RequestContextMiddleware:
         structlog.contextvars.clear_contextvars()
         structlog.contextvars.bind_contextvars(request_id=request_id)
         started = time.perf_counter()
-        status_code = 500
+        status_code = AppError.status_code
         response_started = False
 
         async def send_with_headers(message: Message) -> None:
@@ -48,11 +53,9 @@ class RequestContextMiddleware:
                 status_code = message["status"]
                 headers = MutableHeaders(scope=message)
                 headers[REQUEST_ID_HEADER] = request_id
-                headers["X-Content-Type-Options"] = "nosniff"
-                headers["Referrer-Policy"] = "no-referrer"
-                headers["X-Frame-Options"] = "DENY"
+                headers.update(SECURITY_HEADERS)
                 if self.hsts:
-                    headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains"
+                    headers.update(HSTS_HEADERS)
             await send(message)
 
         try:
@@ -62,7 +65,7 @@ class RequestContextMiddleware:
             if response_started:
                 raise
             response = error_response(
-                500, "INTERNAL_ERROR", "Something went wrong on our side.", request_id
+                AppError.status_code, AppError.code, AppError.message, request_id
             )
             await response(scope, receive, send_with_headers)
         finally:
