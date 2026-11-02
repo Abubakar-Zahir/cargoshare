@@ -1,6 +1,7 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTypescript from "eslint-config-next/typescript";
+import eslintConfigPrettier from "eslint-config-prettier/flat";
 import jsxA11y from "eslint-plugin-jsx-a11y";
 import tseslint from "typescript-eslint";
 
@@ -15,5 +16,6 @@ export default defineConfig([
   },
   { rules: jsxA11y.flatConfigs.strict.rules },
   { files: ["**/*.mjs"], extends: [tseslint.configs.disableTypeChecked] },
+  eslintConfigPrettier,
   globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
 ]);
