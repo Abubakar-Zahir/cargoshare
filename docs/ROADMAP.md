@@ -226,6 +226,10 @@ File lists are the **expected** files. Claude Code may adjust names while buildi
 Moved to PR4: `app/models/base.py`, `app/models/profile.py` (first used there). Moved to PR29: the limited backend database user (Owner decision 2026-10-20). Tests paused.
 **Demo:** `npx supabase@2.121.0 db push`; add a user in the dashboard and see the profile row appear; the browser roles are refused.
 
+### PR3b: Frontend baseline config and project checks (6 files)
+Requested before further feature work. `frontend/package.json` (`eslint-config-prettier`, `devEngines` Node check), `frontend/eslint.config.mjs` (Prettier compatibility, last), `frontend/README.md` (how to run, where things go, code rules), `.pre-commit-config.yaml` (frontend ESLint, TypeScript and Prettier added to the commit checks), `.github/workflows/checks.yml` (after a push: backend, frontend and full-history secret checks), this roadmap. Backend tests stay paused and are not in CI.
+**Demo:** `pnpm exec eslint-config-prettier src/app/page.tsx` finds no conflicts; `pnpm install` on Node 24.21.0 fails with `ERR_PNPM_BAD_RUNTIME_VERSION`; a commit with bad frontend code is refused; the Checks tab on the pull request shows `backend`, `frontend` and `secrets`.
+
 ### PR4: Backend auth and "who am I" (~13 files)
 `app/models/base.py`, `app/models/profile.py` (moved from PR3), `app/core/security.py` (JWT check via JWKS), `app/api/deps.py` (current user), `app/schemas/profile.py`, `app/repos/profiles.py`, `app/services/profiles.py`, `app/api/v1/me.py` (`GET/PATCH /me`), `app/api/v1/users.py` (`GET /users/{username}`), `app/api/v1/router.py`, `tests/helpers/tokens.py`, `tests/security/test_jwt_failures.py`, `tests/integration/test_me.py`, `tests/integration/test_users.py`, `tests/security/test_mass_assignment.py`
 **Demo:** curl `/me` with no token (401), a bad token (401), a real token (200).
@@ -345,6 +349,7 @@ Assumptions: one PR per working day, Monday to Friday; the Reviewer reviews the 
 | PR1 | Backend setup | Thu 15 and Fri 16 Oct (PR open) |
 | PR2 | Frontend setup | Mon 19 Oct |
 | PR3 | Profiles table and lockdown | Tue 20 Oct |
+| PR3b | Frontend baseline config and project checks | Mon 2 Nov |
 | PR4 | Backend auth and /me | Wed 21 Oct |
 | PR5 | Design basics | Thu 22 Oct |
 | PR6 | Signup and login | Fri 23 Oct |

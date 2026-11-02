@@ -6,10 +6,10 @@
 ## Current Step
 | Field | Value |
 |---|---|
-| Step | PR3: Profiles table and database lockdown |
-| Status | PR OPEN (Owner pushes `profiles_table`; PR2 reviewed, waiting for merge) |
-| Branch | `profiles_table` (from `frontend_setup` at `1f2fce3`; PR2 reviewed, not merged yet) |
-| Next step | Owner pushes `profiles_table` and opens PR3 into `main` (ideally after PR2 is merged). Then PR4: backend auth and `/me`. |
+| Step | PR3b: Frontend baseline config and project checks |
+| Status | PR OPEN (Owner pushes `frontend_baseline`) |
+| Branch | `frontend_baseline` (from `origin/main` at `2a51948`) |
+| Next step | Owner restores the Supabase dev project, pushes and opens PR3b. Then PR4: backend auth and `/me`. |
 
 ## Steps
 > Renumbered 2026-10-16: backend setup is PR1, frontend setup is PR2, old PR1 to PR28 are now PR3 to PR30. History below keeps the old numbers.
@@ -17,8 +17,9 @@
 | Step | Feature | Target | Status | PR | Merged on |
 |---|---|---|---|---|---|
 | PR1 | Backend setup | 15 to 16 Oct | DONE | #4 | 2026-10-19 |
-| PR2 | Frontend setup | 19 Oct | PR OPEN | branch `frontend_setup` | |
-| PR3 | Profiles table and lockdown | 20 Oct | PR OPEN | branch `profiles_table` | |
+| PR2 | Frontend setup | 19 Oct | DONE | #5 | 2026-10-20 |
+| PR3 | Profiles table and lockdown | 20 Oct | DONE | #6 | 2026-10-20 |
+| PR3b | Frontend baseline config and project checks | 2 Nov | PR OPEN | branch `frontend_baseline` | |
 | PR4 | Backend auth and /me | 21 Oct | NOT STARTED | | |
 | PR5 | Design basics | 22 Oct | NOT STARTED | | |
 | PR6 | Signup and login | 23 Oct | NOT STARTED | | |
@@ -57,6 +58,22 @@
 - Next:
 - Notes:
 -->
+
+### 2026-11-02 | PR3b project checks
+- Owner asked for the checks to be part of PR3b, not a separate PR; all on `frontend_baseline`.
+- Owner asked for pre-commit and after-commit checks, overriding the earlier "no CI yet" decision (Reviewer comment on PR1). Backend tests stay paused.
+- `.pre-commit-config.yaml`: frontend ESLint, TypeScript, Prettier. `.github/workflows/checks.yml`: jobs `backend`, `frontend`, `secrets`; actions pinned to commit SHAs; read-only permissions.
+- Running the CI commands in a fresh clone showed `pip-audit` failing: advisories published since October. Upgraded only certifi (runtime) 2026.10.23, filelock 4.2.6 and virtualenv 21.15.2 (dev). `pip-audit` can turn CI red whenever a new advisory is published; the fix is a small lockfile upgrade.
+- `pnpm audit --prod` clean. Full audit: 1 moderate, `minimatch` 10.2.6 inside ESLint (dev only; patched in 11, which ESLint has not adopted). Left as is; `pnpm audit` is not in CI.
+- `cargoshare-dev` unreachable since (at the latest) today: pooler says `tenant/user ... not found`, project URL does not answer. Most likely paused by the free plan after inactivity. Owner to restore it in the dashboard; CI does not need it.
+- `devEngines` also refuses `pnpm` scripts (and so the commit hooks) on the wrong Node version, not only install. New terminals default to 24.22.0.
+- Audit of the baseline list: all items work against deliberately bad code. Found and fixed: `README.md` was not Prettier-clean and not covered by the format scripts.
+
+### 2026-11-02 | PR3b frontend baseline config
+- Requested by the Owner's colleague before further feature PRs. Most of the list already existed from PR2 (ESLint, Prettier, strict TypeScript, `@/` alias, `.nvmrc`). Added: `eslint-config-prettier`, a Node version check, `frontend/README.md`.
+- Node 24.22.0 (from `.nvmrc`) was never installed on this machine; installed with nvm, plus pnpm 12.14.0 under it.
+- Proofs: `eslint-config-prettier` CLI finds no conflicts; `pnpm install` on Node 24.21.0 fails with `ERR_PNPM_BAD_RUNTIME_VERSION`, works on 24.22.0; lint, typecheck, Prettier, build pass.
+- Roadmap target dates are now behind (today 2 Nov; PR4 was 21 Oct). Not rewritten; needs a decision from the Owner.
 
 ### 2026-10-20 | PR3 profiles table (restart)
 - PR2 review comments all fixed as new commits (arrow functions, constants file, content via props, `@/` imports, CSP and header constants, env.ts comment); Reviewer cleared PR2. Owner dropped the proxy.ts comments commit. Last push `1f2fce3`.
@@ -131,6 +148,9 @@
 - 2026-10-14: The rejected PR #2 lives on `archive/pr2-frontend-f0-f2`, read-only reference. Nothing is merged or cherry-picked from it. Replaced 2026-10-15: repo restarted, no archive branch.
 - 2026-10-14: Timeline: best case finish 25 Nov 2026, realistic 4 Dec 2026 (one PR per working day, Mon to Fri).
 
+### Baseline config (2026-11-02)
+- 2026-11-02: Node check uses `devEngines.runtime` (`onFail: error`), not `engines.node`. Tested on pnpm 12.14.0: `engines.node` did not stop an install even with `>=99`, although the pnpm docs say a project's own `engines` always fails it. `engineStrict` not added.
+
 ### Step 0 decisions (2026-10-15)
 - 2026-10-15: Node 24.22.0, Python 3.14.8 (fall back to 3.13 only with Owner OK if asyncpg or pydantic-core would compile from source).
 - 2026-10-15: No root pnpm workspace. `frontend/pnpm-workspace.yaml` holds settings only (`minimumReleaseAge: 1440`). Supabase CLI always run as `npx supabase@2.121.0`.
@@ -170,7 +190,7 @@ _none yet_
 <!-- Postponed on purpose. Every item must be done before real users. -->
 - [ ] 2026-10-20: Limited backend database user `cargoshare_backend` (data access only, bypasses RLS); grant on all tables + default privileges; switch `DATABASE_URL` off `postgres` (PR29).
 - [ ] 2026-10-20: Supabase Auth dashboard settings: email confirmation, minimum password length 10, JWT expiry 3600, refresh token rotation, asymmetric signing keys (before PR6 signup at the latest).
-- [ ] 2026-10-20: Tests back in git and CI workflows (paused by the Owner and the Reviewer).
+- [ ] 2026-10-20: Tests back in git and CI workflows (paused by the Owner and the Reviewer). CI part resolved 2026-11-02 (PR3b); tests still paused.
 - [ ] 2026-10-20: Answer the PR1 Reviewer comment "why we need this?" on `config.py` (line unknown).
 
 ## Known Limitations / Tech Debt
