@@ -162,12 +162,12 @@ flowchart TD
     P1[PR1 Backend setup] --> P3[PR3 Profiles table]
     P2[PR2 Frontend setup] --> P3
     P3 --> P4[PR4 Backend auth]
-    P2 --> P5[PR5 Design basics]
-    P4 --> P6[PR6 Signup and login]
-    P5 --> P6
-    P6 --> P7[PR7 Logout and password reset]
-    P7 --> P8[PR8 App shell and Dashboard v1]
-    P5 --> P9[PR9 Landing page]
+    P4 --> P5[PR5 Log in and log out]
+    P5 --> P6[PR6 Sign up and password reset]
+    P2 --> P7[PR7 Design basics]
+    P6 --> P8[PR8 App shell and Dashboard v1]
+    P7 --> P8
+    P7 --> P9[PR9 Landing page]
     P4 --> P10[PR10 Trips API]
     P10 --> P11[PR11 Trip search API]
     P8 --> P12[PR12 My trips screen]
@@ -230,21 +230,22 @@ Moved to PR4: `app/models/base.py`, `app/models/profile.py` (first used there). 
 Requested before further feature work. `frontend/package.json` (`eslint-config-prettier`, `devEngines` Node check), `frontend/eslint.config.mjs` (Prettier compatibility, last), `frontend/README.md` (how to run, where things go, code rules), `.pre-commit-config.yaml` (frontend ESLint, TypeScript and Prettier added to the commit checks), `.github/workflows/checks.yml` (after a push: backend, frontend and full-history secret checks), this roadmap. Backend tests stay paused and are not in CI.
 **Demo:** `pnpm exec eslint-config-prettier src/app/page.tsx` finds no conflicts; `pnpm install` on Node 24.21.0 fails with `ERR_PNPM_BAD_RUNTIME_VERSION`; a commit with bad frontend code is refused; the Checks tab on the pull request shows `backend`, `frontend` and `secrets`.
 
-### PR4: Backend auth and "who am I" (~13 files)
-`app/models/base.py`, `app/models/profile.py` (moved from PR3), `app/core/security.py` (JWT check via JWKS), `app/api/deps.py` (current user), `app/schemas/profile.py`, `app/repos/profiles.py`, `app/services/profiles.py`, `app/api/v1/me.py` (`GET/PATCH /me`), `app/api/v1/users.py` (`GET /users/{username}`), `app/api/v1/router.py`, `tests/helpers/tokens.py`, `tests/security/test_jwt_failures.py`, `tests/integration/test_me.py`, `tests/integration/test_users.py`, `tests/security/test_mass_assignment.py`
+### PR4: Backend auth and "who am I" (15 files)
+`app/models/base.py`, `app/models/profile.py` (moved from PR3), `app/core/security.py` (JWT check via JWKS), `app/core/constants.py`, `app/core/errors.py`, `app/core/config.py`, `app/core/middleware.py`, `app/main.py`, `app/api/deps.py` (current user), `app/schemas/profile.py`, `app/repos/profiles.py`, `app/services/profiles.py`, `app/api/v1/me.py` (`GET/PATCH /me`), `pyproject.toml`, `.env.example`
+Moved to PR26: `GET /users/{username}` (first used by the profile screens). Tests paused.
 **Demo:** curl `/me` with no token (401), a bad token (401), a real token (200).
 
-### PR5: Design basics (~14 files)
-Tailwind install (`postcss.config.mjs`, moved here from setup), `src/app/globals.css` (paper and ink tokens, bottle green accent), fonts in `src/app/layout.tsx`, `src/lib/theme.ts`, `src/components/theme/theme-toggle.tsx`, `src/components/theme/actions.ts`, `src/components/ui/button.tsx`, `src/components/ui/input.tsx`, `src/components/ui/field.tsx` (label, hint, error), `src/lib/utils.ts`, `components.json`, `tests/unit/tokens.test.ts` (contrast), `tests/unit/theme.test.ts`, `tests/e2e/theme.spec.ts`
-**Demo:** placeholder page in light and dark; contrast test output.
+### PR5: Log in and log out (15 files)
+`src/lib/supabase/server.ts`, `src/proxy.ts` (refresh session), `src/lib/validation/auth.ts`, `src/lib/auth/actions.ts` (log in, log out), `src/app/(auth)/login/page.tsx`, `src/app/(auth)/login/login-form.tsx`, `src/lib/api/client.ts` (typed client with token), `src/app/page.tsx` and `src/components/home/welcome.tsx` (username from `/me`), `src/lib/constants.ts`, `package.json` (libraries, `gen:api`), `backend/scripts/export_openapi.py`, `docs/SUPABASE_SETUP.md`, `CLAUDE.md`, this roadmap. Unstyled until PR7. Tests paused.
+**Demo:** log in with a user from the Supabase dashboard, see the username on the home page, log out.
 
-### PR6: Signup and login (~13 files)
-`src/lib/supabase/server.ts`, `src/lib/supabase/client.ts`, `src/proxy.ts` (refresh session), `src/app/(auth)/layout.tsx`, `src/app/(auth)/signup/page.tsx`, `src/app/(auth)/signup/signup-form.tsx`, `src/app/(auth)/login/page.tsx`, `src/app/(auth)/login/login-form.tsx`, `src/app/auth/callback/route.ts`, `src/lib/validation/auth.ts`, `src/lib/auth/safe-next.ts`, `tests/unit/safe-next.test.ts`, `tests/e2e/auth.spec.ts`
-**Demo:** sign up, confirm email, log in, watch the e2e test do it headed.
+### PR6: Sign up, password reset, protected pages (~13 files)
+`src/app/(auth)/signup/page.tsx` + form, `src/app/auth/callback/route.ts`, `src/app/(auth)/forgot-password/page.tsx` + form, `src/app/(auth)/reset-password/page.tsx` + form, `src/lib/validation/auth.ts`, `src/lib/auth/actions.ts`, `src/lib/auth/safe-next.ts`, `src/proxy.ts` (redirect logged-out users), `src/lib/api/client.ts` (one refresh and retry on 401), `frontend/README.md`. **The sign-in feature is complete here.** Tests paused.
+**Demo:** sign up, confirm email, log in; open a protected page logged out and get sent to login; reset password flow.
 
-### PR7: Logout, password reset, protected pages (~11 files)
-`src/app/(auth)/forgot-password/page.tsx` + form, `src/app/(auth)/reset-password/page.tsx` + form, `src/lib/auth/actions.ts` (logout), `src/proxy.ts` (redirect logged-out users), `src/lib/api/client.ts` (typed client with token, one refresh and retry on 401), `scripts` entry `gen:api`, `tests/unit/api-client.test.ts`, `tests/e2e/reset-password.spec.ts`, `tests/e2e/protected-routes.spec.ts`
-**Demo:** open `/dashboard` logged out, get sent to login; reset password flow.
+### PR7: Design basics (~14 files)
+Tailwind install (`postcss.config.mjs`, moved here from setup), `src/app/globals.css` (paper and ink tokens, bottle green accent), fonts in `src/app/layout.tsx`, `src/lib/theme.ts`, `src/components/theme/theme-toggle.tsx`, `src/components/theme/actions.ts`, `src/components/ui/button.tsx`, `src/components/ui/input.tsx`, `src/components/ui/field.tsx` (label, hint, error), `src/lib/utils.ts`, `components.json`, the auth forms restyled. Tests paused.
+**Demo:** the login and signup pages in light and dark.
 
 ### PR8: App shell and Dashboard v1 (~14 files)
 `src/app/(app)/layout.tsx` (loads `/me`), `src/app/(app)/dashboard/page.tsx` (greeting, Get started checklist, "Nothing needs you right now"), `src/components/shell/app-shell.tsx`, `sidebar.tsx`, `bottom-nav.tsx`, `nav-items.ts`, `nav-link.tsx`, `user-menu.tsx`, `skip-link.tsx`, `src/components/domain/get-started.tsx`, `src/components/feedback/empty-state.tsx`, `tests/unit/nav.test.ts`, `tests/e2e/shell.spec.ts`, `tests/e2e/dashboard.spec.ts`
@@ -351,9 +352,9 @@ Assumptions: one PR per working day, Monday to Friday; the Reviewer reviews the 
 | PR3 | Profiles table and lockdown | Tue 20 Oct |
 | PR3b | Frontend baseline config and project checks | Mon 2 Nov |
 | PR4 | Backend auth and /me | Wed 21 Oct |
-| PR5 | Design basics | Thu 22 Oct |
-| PR6 | Signup and login | Fri 23 Oct |
-| PR7 | Logout, password reset, protected pages | Mon 26 Oct |
+| PR5 | Log in and log out | Thu 22 Oct |
+| PR6 | Sign up, password reset, protected pages | Fri 23 Oct |
+| PR7 | Design basics | Mon 26 Oct |
 | PR8 | App shell and Dashboard v1 | Tue 27 Oct |
 | PR9 | Landing and public pages | Wed 28 Oct |
 | PR10 | Trips API | Thu 29 Oct |
@@ -398,9 +399,9 @@ gantt
     section Accounts
     PR3 Profiles table               :p3, after p2, 1d
     PR4 Backend auth                 :p4, after p3, 1d
-    PR5 Design basics                :p5, after p4, 1d
-    PR6 Signup and login             :p6, after p5, 1d
-    PR7 Logout and reset             :p7, after p6, 1d
+    PR5 Log in and log out           :p5, after p4, 1d
+    PR6 Sign up and reset            :p6, after p5, 1d
+    PR7 Design basics                :p7, after p6, 1d
     PR8 Shell and Dashboard v1       :p8, after p7, 1d
     PR9 Landing                      :p9, after p8, 1d
     section Trips

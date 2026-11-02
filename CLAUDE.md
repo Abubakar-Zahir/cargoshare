@@ -78,6 +78,7 @@ Backend (from `backend/`):
 ```
 uv sync
 uv run fastapi dev app/main.py
+uv run python -m scripts.export_openapi   (save the API description to docs/openapi.json)
 uv run ruff check . && uv run ruff format --check . && uv run mypy app && uv run bandit -c pyproject.toml -r app -ll
 npx supabase@2.121.0 link --project-ref <ref>
 npx supabase@2.121.0 db push            (apply migrations to the linked project)
@@ -87,6 +88,7 @@ Frontend (from `frontend/`):
 ```
 nvm use
 pnpm dev
+pnpm gen:api                              (API types from docs/openapi.json; run after the export above)
 pnpm lint && pnpm typecheck && pnpm format:check && pnpm build
 ```
 Repo root:
