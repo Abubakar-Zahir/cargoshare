@@ -36,6 +36,12 @@ Open `https://supabase.com/dashboard/project/<ref>/settings/api` (or **Integrati
 | Minimum password length | **10** | same page |
 | Access token (JWT) expiry | **3600** seconds | `…/project/<ref>/auth/sessions` |
 | Refresh token reuse detection (rotation) | **On** (default) | Auth settings, Advanced |
+| Site URL | `http://localhost:3000` for dev (the real address in production) | `…/project/<ref>/auth/url-configuration` |
+
+### Redirect URLs
+Open `…/project/<ref>/auth/url-configuration` and add `http://localhost:3000/auth/callback` under **Redirect URLs** (the real address too, in production). Email links return there.
+
+The email templates stay as they are: Supabase locks them until you set up your own email service (custom SMTP). Its built-in service also allows only a small number of emails per hour, so set up your own before launch.
 
 ## 4. Asymmetric JWT signing keys
 1. Open `…/project/<ref>/settings/jwt`.

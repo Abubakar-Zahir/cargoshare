@@ -239,9 +239,10 @@ Moved to PR26: `GET /users/{username}` (first used by the profile screens). Test
 `src/lib/supabase/server.ts`, `src/proxy.ts` (refresh session), `src/lib/validation/auth.ts`, `src/lib/auth/actions.ts` (log in, log out), `src/app/(auth)/login/page.tsx`, `src/app/(auth)/login/login-form.tsx`, `src/lib/api/client.ts` (typed client with token), `src/app/page.tsx` and `src/components/home/welcome.tsx` (username from `/me`), `src/lib/constants.ts`, `package.json` (libraries, `gen:api`), `backend/scripts/export_openapi.py`, `docs/SUPABASE_SETUP.md`, `CLAUDE.md`, this roadmap. Unstyled until PR7. Tests paused.
 **Demo:** log in with a user from the Supabase dashboard, see the username on the home page, log out.
 
-### PR6: Sign up, password reset, protected pages (~13 files)
-`src/app/(auth)/signup/page.tsx` + form, `src/app/auth/callback/route.ts`, `src/app/(auth)/forgot-password/page.tsx` + form, `src/app/(auth)/reset-password/page.tsx` + form, `src/lib/validation/auth.ts`, `src/lib/auth/actions.ts`, `src/lib/auth/safe-next.ts`, `src/proxy.ts` (redirect logged-out users), `src/lib/api/client.ts` (one refresh and retry on 401), `frontend/README.md`. **The sign-in feature is complete here.** Tests paused.
-**Demo:** sign up, confirm email, log in; open a protected page logged out and get sent to login; reset password flow.
+### PR6: Sign up, password reset, protected pages (15 files)
+`src/app/(auth)/signup/page.tsx`, `src/app/(auth)/forgot-password/page.tsx`, `src/app/(auth)/reset-password/page.tsx`, `src/app/auth/callback/route.ts` (email links), `src/components/auth/auth-form.tsx` (one form for all auth pages, replaces `login-form.tsx`), `src/app/(auth)/login/page.tsx`, `src/lib/validation/auth.ts` (form rules, safe `next`), `src/lib/auth/actions.ts`, `src/proxy.ts` (redirect logged-out users), `src/lib/constants.ts`, `src/app/page.tsx` (protected until PR9 adds `/` to the public pages), `frontend/README.md`, `docs/SUPABASE_SETUP.md`, this roadmap. **The sign-in feature is complete here.**
+Moved: password strength meter to PR7; one refresh and retry on 401 to PR8, where the browser first calls the API. Tests paused.
+**Demo:** sign up, confirm email, log in; open `/` logged out and get sent to login; reset password flow.
 
 ### PR7: Design basics (~14 files)
 Tailwind install (`postcss.config.mjs`, moved here from setup), `src/app/globals.css` (paper and ink tokens, bottle green accent), fonts in `src/app/layout.tsx`, `src/lib/theme.ts`, `src/components/theme/theme-toggle.tsx`, `src/components/theme/actions.ts`, `src/components/ui/button.tsx`, `src/components/ui/input.tsx`, `src/components/ui/field.tsx` (label, hint, error), `src/lib/utils.ts`, `components.json`, the auth forms restyled. Tests paused.

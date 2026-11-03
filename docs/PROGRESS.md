@@ -6,10 +6,10 @@
 ## Current Step
 | Field | Value |
 |---|---|
-| Step | PR5: Log in and log out |
-| Status | IN PROGRESS (committed locally; teaching not finished; Owner's real-account test pending) |
-| Branch | `sign_in_frontend` (from `sign_in_backend`; PR4 pushed, merge not confirmed) |
-| Next step | Owner tests log in with a real account, answers the teaching questions, pushes and opens PR5. Then PR6. |
+| Step | PR6: Sign up, password reset, protected pages |
+| Status | IN PROGRESS (committed locally; Owner's test passed; teaching not finished) |
+| Branch | `sign_in_complete` (from `sign_in_frontend`; PR4 and PR5 pushed, not merged) |
+| Next step | Owner pushes and opens PR6. Then the Owner decides on the username check PR. |
 
 ## Steps
 > Renumbered 2026-10-16: backend setup is PR1, frontend setup is PR2, old PR1 to PR28 are now PR3 to PR30. History below keeps the old numbers.
@@ -21,8 +21,8 @@
 | PR3 | Profiles table and lockdown | 20 Oct | DONE | #6 | 2026-10-20 |
 | PR3b | Frontend baseline config and project checks | 2 Nov | DONE | #8 | 2026-11-02 |
 | PR4 | Backend auth and /me | 21 Oct | PR OPEN (pushed; opening not confirmed) | branch `sign_in_backend` | |
-| PR5 | Log in and log out | 22 Oct | IN PROGRESS | branch `sign_in_frontend` | |
-| PR6 | Sign up, password reset, protected pages | 23 Oct | NOT STARTED | | |
+| PR5 | Log in and log out | 22 Oct | PR OPEN (pushed; opening not confirmed) | branch `sign_in_frontend` | |
+| PR6 | Sign up, password reset, protected pages | 23 Oct | IN PROGRESS | branch `sign_in_complete` | |
 | PR7 | Design basics | 26 Oct | NOT STARTED | | |
 | PR8 | App shell and Dashboard v1 | 27 Oct | NOT STARTED | | |
 | PR9 | Landing and public pages | 28 Oct | NOT STARTED | | |
@@ -59,6 +59,17 @@
 - Notes:
 -->
 
+### 2026-11-03 | PR6 sign up, password reset, protected pages
+- Owner tested PR5 with a real account: log in works. Teaching questions for PR2 to PR5 still unanswered; Owner keeps moving on.
+- Email links use `/auth/callback` with `exchangeCodeForSession`. First built as `/auth/confirm` with `token_hash`, but Supabase locks email templates until custom SMTP is set up (Owner's dashboard, 2026-11-03), so the Owner OK'd the switch. Limit: the link must open in the browser that asked for it. Move to `token_hash` when custom SMTP is added, before launch (PR29).
+- Recovery links are recognised by `redirectType` from the library, which its types leave out. Recheck this when upgrading `@supabase/supabase-js`. The redirect address has no query string because Supabase checks it against the allow list including the query.
+- Every page needs a login unless listed in `PUBLIC_PATHS`. `/` is protected until PR9; no placeholder page was added to protect.
+- `proxy.ts` decides with `getUser()`. Login page no longer reads the session, because a forged cookie would otherwise loop between `/` and `/login`. If Supabase cannot be reached, logged-in users are sent to login.
+- Checked with made-up accounts, no signup emails sent: redirects; safe `next` (5 bad values refused); all form errors; bad email links; forged cookie and expired session; CSP nonce on the public pages. No password or token in logs.
+- Owner tested with real email on dev, 2026-11-03, all pass: protected page redirect, signup, confirm link, password reset, log in with the new password.
+- Not checked: return to `next` after a real login (only `/` was tested) and form values kept with JavaScript on (forms tested by posting directly).
+- Known: a taken username silently becomes `user_xxxxxxxx` and cannot be changed yet. Small backend check proposed as its own PR after PR6. Any open session can use `/reset-password` without the old password. Email security scanners may use up a link; not tested.
+
 ### 2026-11-02 | PR5 log in and log out
 - Roadmap updated for Option B: sign-in finishes in PR6; design basics moves to PR7. PR8 onward unchanged. `GET /users/{username}` was not built in PR4; roadmap moves it to PR26 (Owner to confirm).
 - Corrected: PR3b ended on branch `project_checks` (the `frontend_baseline` note below is the earlier name). GitHub's `sign_in_backend` was created from `main`, so PR4 was rebased onto `b4ccdb5`.
@@ -67,7 +78,7 @@
 - `frontend/README.md` still describes `src/proxy.ts` as CSP only; would be file 16, so it is fixed in PR6.
 - Log out is this device only (`scope: "local"`; Supabase's default is every device). Sign-out clears the cookie even when Supabase cannot be reached (read in the library source).
 - Checked against dev with made-up accounts only: logged-out home; unknown email gives the generic message and no cookie; bad email format; password not echoed or logged; forged cookie gets no profile; backend down shows the profile message and log out still works; expired session with a refused refresh clears the cookie; log out from another site refused. A failed refresh logs `Refresh token is not valid` on the server, with no token in it.
-- Not checked by me: a successful real login and an unconfirmed email; I have no account for them. Owner's demo covers the first; the second waits for signup in PR6.
+- Not checked by me: a successful real login and an unconfirmed email; I have no account for them. Owner's demo covers the first (Owner confirmed it works, 2026-11-03); the second waits for signup in PR6.
 
 ### 2026-11-02 | PR4 backend auth
 - Owner wants full auth across two PRs: PR4 backend, PR5 frontend (sign up, email confirmation, log in, log out, forgot and reset password, protected pages). Doing all of it in PR5 would be about 21 files, so it is split (Option B below).
