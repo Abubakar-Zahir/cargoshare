@@ -8,7 +8,12 @@ import {
   CSP_FIXED_DIRECTIVES,
   CSP_HEADER,
   CSP_UPGRADE_INSECURE_REQUESTS,
+  GUEST_ONLY_PATHS,
+  HOME_PATH,
+  LOGIN_PATH,
+  NEXT_PARAM,
   NONCE_HEADER,
+  PUBLIC_PATHS,
 } from "@/lib/constants";
 
 const contentSecurityPolicy = (nonce: string): string => {
@@ -34,6 +39,7 @@ export const proxy = async (request: NextRequest): Promise<NextResponse> => {
   requestHeaders.set(CSP_HEADER, csp);
 
   let response = NextResponse.next({ request: { headers: requestHeaders } });
+  let sessionCacheHeaders: Readonly<Record<string, string>> = {};
 
   const supabase = createServerClient(
     env.NEXT_PUBLIC_SUPABASE_URL,
@@ -51,6 +57,7 @@ export const proxy = async (request: NextRequest): Promise<NextResponse> => {
           cookiesToSet.forEach(({ name, value, options }) => {
             response.cookies.set(name, value, options);
           });
+          sessionCacheHeaders = cacheHeaders;
           Object.entries(cacheHeaders).forEach(([name, value]) => {
             response.headers.set(name, value);
           });
@@ -59,8 +66,31 @@ export const proxy = async (request: NextRequest): Promise<NextResponse> => {
     },
   );
 
-  // Refreshes an expired session. It writes the new cookies through setAll above.
-  await supabase.auth.getUser();
+  // Checks the session with Supabase and refreshes it if expired (new cookies go through setAll).
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const redirectTo = (target: URL): NextResponse => {
+    const redirect = NextResponse.redirect(target);
+    response.cookies.getAll().forEach((cookie) => {
+      redirect.cookies.set(cookie);
+    });
+    Object.entries(sessionCacheHeaders).forEach(([name, value]) => {
+      redirect.headers.set(name, value);
+    });
+    return redirect;
+  };
+
+  const { pathname, search } = request.nextUrl;
+  if (!user && !PUBLIC_PATHS.includes(pathname)) {
+    const loginUrl = new URL(LOGIN_PATH, request.url);
+    loginUrl.searchParams.set(NEXT_PARAM, `${pathname}${search}`);
+    return redirectTo(loginUrl);
+  }
+  if (user && GUEST_ONLY_PATHS.includes(pathname)) {
+    return redirectTo(new URL(HOME_PATH, request.url));
+  }
 
   response.headers.set(CSP_HEADER, csp);
   return response;

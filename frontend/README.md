@@ -29,7 +29,7 @@ pnpm lint && pnpm typecheck && pnpm format:check && pnpm build
 | `src/lib/constants.ts`   | Fixed values: text, header values, key prefixes                  |
 | `src/lib/`               | Other shared helpers                                             |
 | `src/env.ts`             | Checks the environment variables at start and build              |
-| `src/proxy.ts`           | Runs before every page: Content-Security-Policy nonce            |
+| `src/proxy.ts`           | Runs before every page: CSP nonce, session, login redirects      |
 
 ## Code rules
 

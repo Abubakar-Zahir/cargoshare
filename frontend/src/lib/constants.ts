@@ -3,24 +3,113 @@ export const APP_DESCRIPTION = "Send small items with travelers going your way."
 
 export const HOME_PATH = "/";
 export const LOGIN_PATH = "/login";
+export const SIGNUP_PATH = "/signup";
+export const FORGOT_PASSWORD_PATH = "/forgot-password";
+export const RESET_PASSWORD_PATH = "/reset-password";
+export const AUTH_CALLBACK_PATH = "/auth/callback";
 export const ME_PATH = "/api/v1/me";
 export const API_TIMEOUT_MILLISECONDS = 5_000;
 
-export const LOGGED_OUT_MESSAGE = "Log in to continue.";
+// Pages open to logged-out visitors (src/proxy.ts). Every other page needs a login.
+export const PUBLIC_PATHS: readonly string[] = [
+  LOGIN_PATH,
+  SIGNUP_PATH,
+  FORGOT_PASSWORD_PATH,
+  AUTH_CALLBACK_PATH,
+];
+// Logged-in users have no reason to see these, so they are sent home.
+export const GUEST_ONLY_PATHS: readonly string[] = [LOGIN_PATH, SIGNUP_PATH, FORGOT_PASSWORD_PATH];
+
+export const NEXT_PARAM = "next";
+export const ERROR_PARAM = "error";
+export const LINK_ERROR = "link";
+
+export const CODE_PARAM = "code";
+export const RECOVERY_TYPE = "recovery";
+
 export const SIGNED_IN_MESSAGE = "Signed in as";
 export const PROFILE_UNAVAILABLE_MESSAGE = "We could not load your profile. Please try again.";
 
 export const LOGIN_TITLE = "Log in";
-export const EMAIL_LABEL = "Email";
-export const PASSWORD_LABEL = "Password";
+export const SIGNUP_TITLE = "Sign up";
+export const FORGOT_PASSWORD_TITLE = "Forgot your password?";
+export const RESET_PASSWORD_TITLE = "Choose a new password";
 export const LOG_IN_LABEL = "Log in";
 export const LOG_OUT_LABEL = "Log out";
+export const SIGN_UP_LABEL = "Sign up";
+export const SEND_RESET_LINK_LABEL = "Send reset link";
+export const SAVE_PASSWORD_LABEL = "Save new password";
+export const NO_ACCOUNT_LABEL = "Create an account";
+export const HAVE_ACCOUNT_LABEL = "I already have an account";
+export const FORGOT_PASSWORD_LABEL = "Forgot your password?";
+
+// Same limits as the profiles table and the Supabase Auth settings.
+export const USERNAME_PATTERN = /^[a-z0-9_]{3,30}$/;
+export const PASSWORD_MIN_LENGTH = 10;
+export const PASSWORD_MAX_LENGTH = 72;
+
+const EMAIL_FIELD = { name: "email", label: "Email", type: "email", autoComplete: "email" };
+const NEW_PASSWORD_HINT = `At least ${String(PASSWORD_MIN_LENGTH)} characters.`;
+
+export const LOGIN_FIELDS = [
+  EMAIL_FIELD,
+  { name: "password", label: "Password", type: "password", autoComplete: "current-password" },
+];
+export const SIGNUP_FIELDS = [
+  {
+    name: "username",
+    label: "Username",
+    type: "text",
+    autoComplete: "username",
+    hint: "3 to 30 characters: lowercase letters, numbers and underscores.",
+  },
+  EMAIL_FIELD,
+  {
+    name: "password",
+    label: "Password",
+    type: "password",
+    autoComplete: "new-password",
+    hint: NEW_PASSWORD_HINT,
+  },
+  { name: "is_sender", label: "I want to send items", type: "checkbox", defaultChecked: true },
+  { name: "is_traveler", label: "I want to carry items", type: "checkbox", defaultChecked: true },
+];
+export const FORGOT_PASSWORD_FIELDS = [EMAIL_FIELD];
+export const RESET_PASSWORD_FIELDS = [
+  {
+    name: "password",
+    label: "New password",
+    type: "password",
+    autoComplete: "new-password",
+    hint: NEW_PASSWORD_HINT,
+  },
+];
 
 // Supabase answers 400 for a wrong password, an unknown email and an unconfirmed email.
 export const LOGIN_REFUSED_STATUS = 400;
 export const LOGIN_INVALID_MESSAGE = "Enter your email and password.";
 export const LOGIN_REFUSED_MESSAGE = "Wrong email or password.";
-export const LOGIN_UNAVAILABLE_MESSAGE = "We could not log you in right now. Please try again.";
+export const LINK_INVALID_MESSAGE =
+  "We could not finish that link. If you were confirming your email, try logging in. If you were resetting your password, request a new link and open it in this browser.";
+export const AUTH_UNAVAILABLE_MESSAGE = "We could not do that right now. Please try again.";
+export const USERNAME_INVALID_MESSAGE =
+  "Usernames are 3 to 30 characters: lowercase letters, numbers and underscores.";
+export const EMAIL_INVALID_MESSAGE = "Enter a valid email address.";
+export const PASSWORD_TOO_SHORT_MESSAGE = `Use at least ${String(PASSWORD_MIN_LENGTH)} characters.`;
+export const PASSWORD_TOO_LONG_MESSAGE = `Use at most ${String(PASSWORD_MAX_LENGTH)} characters.`;
+export const ROLE_REQUIRED_MESSAGE = "Choose at least one: send items or carry items.";
+// Worded the same whether or not the email has an account, so nobody can test for accounts.
+export const SIGNUP_SUCCESS_MESSAGE =
+  "Check your email to confirm your account. If you already have one, just log in.";
+export const FORGOT_PASSWORD_SUCCESS_MESSAGE =
+  "If that email has an account, we have sent it a link to reset the password.";
+// Supabase error codes we can explain. Anything else gets AUTH_UNAVAILABLE_MESSAGE.
+export const AUTH_ERROR_MESSAGES: Readonly<Record<string, string>> = {
+  weak_password: "That password is too easy to guess. Please choose another.",
+  same_password: "Your new password must be different from the old one.",
+  over_email_send_rate_limit: "Too many emails sent. Please wait a while and try again.",
+  over_request_rate_limit: "Too many attempts. Please wait a while and try again.",
+};
 
 // Supabase key formats: the publishable key may reach the browser, secret keys never may.
 export const PUBLISHABLE_KEY_PREFIX = "sb_publishable_";
