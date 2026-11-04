@@ -6,10 +6,10 @@
 ## Current Step
 | Field | Value |
 |---|---|
-| Step | PR3b: Frontend baseline config and project checks |
-| Status | PR OPEN (Owner pushes `frontend_baseline`) |
-| Branch | `frontend_baseline` (from `origin/main` at `2a51948`) |
-| Next step | Owner restores the Supabase dev project, pushes and opens PR3b. Then PR4: backend auth and `/me`. |
+| Step | PR5: Log in and log out |
+| Status | IN PROGRESS (committed locally; teaching not finished; Owner's real-account test pending) |
+| Branch | `sign_in_frontend` (from `sign_in_backend`; PR4 pushed, merge not confirmed) |
+| Next step | Owner tests log in with a real account, answers the teaching questions, pushes and opens PR5. Then PR6. |
 
 ## Steps
 > Renumbered 2026-10-16: backend setup is PR1, frontend setup is PR2, old PR1 to PR28 are now PR3 to PR30. History below keeps the old numbers.
@@ -19,11 +19,11 @@
 | PR1 | Backend setup | 15 to 16 Oct | DONE | #4 | 2026-10-19 |
 | PR2 | Frontend setup | 19 Oct | DONE | #5 | 2026-10-20 |
 | PR3 | Profiles table and lockdown | 20 Oct | DONE | #6 | 2026-10-20 |
-| PR3b | Frontend baseline config and project checks | 2 Nov | PR OPEN | branch `frontend_baseline` | |
-| PR4 | Backend auth and /me | 21 Oct | NOT STARTED | | |
-| PR5 | Design basics | 22 Oct | NOT STARTED | | |
-| PR6 | Signup and login | 23 Oct | NOT STARTED | | |
-| PR7 | Logout, password reset, protected pages | 26 Oct | NOT STARTED | | |
+| PR3b | Frontend baseline config and project checks | 2 Nov | DONE | #8 | 2026-11-02 |
+| PR4 | Backend auth and /me | 21 Oct | PR OPEN (pushed; opening not confirmed) | branch `sign_in_backend` | |
+| PR5 | Log in and log out | 22 Oct | IN PROGRESS | branch `sign_in_frontend` | |
+| PR6 | Sign up, password reset, protected pages | 23 Oct | NOT STARTED | | |
+| PR7 | Design basics | 26 Oct | NOT STARTED | | |
 | PR8 | App shell and Dashboard v1 | 27 Oct | NOT STARTED | | |
 | PR9 | Landing and public pages | 28 Oct | NOT STARTED | | |
 | PR10 | Trips API | 29 Oct | NOT STARTED | | |
@@ -58,6 +58,27 @@
 - Next:
 - Notes:
 -->
+
+### 2026-11-02 | PR5 log in and log out
+- Roadmap updated for Option B: sign-in finishes in PR6; design basics moves to PR7. PR8 onward unchanged. `GET /users/{username}` was not built in PR4; roadmap moves it to PR26 (Owner to confirm).
+- Corrected: PR3b ended on branch `project_checks` (the `frontend_baseline` note below is the earlier name). GitHub's `sign_in_backend` was created from `main`, so PR4 was rebased onto `b4ccdb5`.
+- `openapi-typescript` 7.13.0 asks for TypeScript 5; we use 6. It works here (only a pnpm warning). No browser Supabase client: not needed yet.
+- Plan changed: `eslint.config.mjs` not needed (ESLint passes the generated file); `CLAUDE.md` took its slot for the new commands. Still 15 files.
+- `frontend/README.md` still describes `src/proxy.ts` as CSP only; would be file 16, so it is fixed in PR6.
+- Log out is this device only (`scope: "local"`; Supabase's default is every device). Sign-out clears the cookie even when Supabase cannot be reached (read in the library source).
+- Checked against dev with made-up accounts only: logged-out home; unknown email gives the generic message and no cookie; bad email format; password not echoed or logged; forged cookie gets no profile; backend down shows the profile message and log out still works; expired session with a refused refresh clears the cookie; log out from another site refused. A failed refresh logs `Refresh token is not valid` on the server, with no token in it.
+- Not checked by me: a successful real login and an unconfirmed email; I have no account for them. Owner's demo covers the first; the second waits for signup in PR6.
+
+### 2026-11-02 | PR4 backend auth
+- Owner wants full auth across two PRs: PR4 backend, PR5 frontend (sign up, email confirmation, log in, log out, forgot and reset password, protected pages). Doing all of it in PR5 would be about 21 files, so it is split (Option B below).
+- Owner branch names: PR3b is `project_checks`. PR4 is `sign_in_backend`.
+- Owner chose Option B: PR5 log in and log out; PR6 sign up, email confirmation, password reset, protected pages. The sign-in feature finishes in PR6. Roadmap renumbering goes in PR5.
+- Final review before pushing: moved remaining fixed values to `constants.py` (including `middleware.py` and `main.py`); removed a wasted database read and a redundant flush in `PATCH /me`; removed the test-only `CARGOSHARE_ENV_FILE` from `config.py`; added API examples. Re-tested: 13 bad tokens 401 without touching the database; `GET /me` 1 query; `PATCH /me` 2 queries; `no-store` present; model matches the table.
+- Built: token check via JWKS (ES256, issuer, audience, expiry, role), `GET /me`, `PATCH /me` (display name and roles only), `no-store` on signed-in responses.
+- Checked with a throwaway script outside the repo against dev: 13 bad-token cases gave 401; a locally signed valid token gave 200; `is_admin`, `is_verified`, `username` and bad values gave 422; both roles off gave `ROLE_REQUIRED`; deactivated user 401; real JWKS endpoint used. Test user restored. Owner then tested a token issued by Supabase itself: `GET /me` 200, bad token 401.
+- Found and fixed: a malformed `DATABASE_URL` made the startup error print the URL with its password (pydantic shows inputs in errors). `Settings` now uses `hide_input_in_errors=True`.
+- New folders have no empty `__init__.py`, to stay within 15 files. `JWT_CLOCK_SKEW_SECONDS` (60) also lets an expired token live 60 seconds longer.
+- `local-tests/backend` needs `SUPABASE_URL` added and no longer has `CARGOSHARE_ENV_FILE`; not updated while tests are paused.
 
 ### 2026-11-02 | PR3b project checks
 - Owner asked for the checks to be part of PR3b, not a separate PR; all on `frontend_baseline`.
@@ -188,6 +209,7 @@ _none yet_
 
 ## Do before production
 <!-- Postponed on purpose. Every item must be done before real users. -->
+- [ ] 2026-11-02: Rate limiting on the API (slowapi), moved from PR4 to PR29.
 - [ ] 2026-10-20: Limited backend database user `cargoshare_backend` (data access only, bypasses RLS); grant on all tables + default privileges; switch `DATABASE_URL` off `postgres` (PR29).
 - [ ] 2026-10-20: Supabase Auth dashboard settings: email confirmation, minimum password length 10, JWT expiry 3600, refresh token rotation, asymmetric signing keys (before PR6 signup at the latest).
 - [ ] 2026-10-20: Tests back in git and CI workflows (paused by the Owner and the Reviewer). CI part resolved 2026-11-02 (PR3b); tests still paused.

@@ -1,7 +1,9 @@
+import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { env } from "@/env";
 import {
+  COOKIE_HEADER,
   CSP_DEV_SCRIPT_SOURCE,
   CSP_FIXED_DIRECTIVES,
   CSP_HEADER,
@@ -23,7 +25,7 @@ const contentSecurityPolicy = (nonce: string): string => {
   return directives.join("; ");
 };
 
-export const proxy = (request: NextRequest): NextResponse => {
+export const proxy = async (request: NextRequest): Promise<NextResponse> => {
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const csp = contentSecurityPolicy(nonce);
 
@@ -31,7 +33,35 @@ export const proxy = (request: NextRequest): NextResponse => {
   requestHeaders.set(NONCE_HEADER, nonce);
   requestHeaders.set(CSP_HEADER, csp);
 
-  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  let response = NextResponse.next({ request: { headers: requestHeaders } });
+
+  const supabase = createServerClient(
+    env.NEXT_PUBLIC_SUPABASE_URL,
+    env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    {
+      cookies: {
+        getAll: () => request.cookies.getAll(),
+        setAll: (cookiesToSet, cacheHeaders) => {
+          // The page must see the refreshed session too, not only the browser.
+          cookiesToSet.forEach(({ name, value }) => {
+            request.cookies.set(name, value);
+          });
+          requestHeaders.set(COOKIE_HEADER, request.cookies.toString());
+          response = NextResponse.next({ request: { headers: requestHeaders } });
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options);
+          });
+          Object.entries(cacheHeaders).forEach(([name, value]) => {
+            response.headers.set(name, value);
+          });
+        },
+      },
+    },
+  );
+
+  // Refreshes an expired session. It writes the new cookies through setAll above.
+  await supabase.auth.getUser();
+
   response.headers.set(CSP_HEADER, csp);
   return response;
 };

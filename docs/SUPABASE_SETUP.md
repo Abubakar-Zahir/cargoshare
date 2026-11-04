@@ -51,7 +51,7 @@ Only the two project refs may be shared in chat. Everything else stays on your m
 | Value | Where to find it | Goes into |
 |---|---|---|
 | Transaction pooler connection string (port **6543**) | **Connect** button (top of the project) → **Transaction pooler** | `backend/.env` (dev) / `backend/.env.test` (test) as `DATABASE_URL`, with `[YOUR-PASSWORD]` replaced. |
-| Project URL `https://<ref>.supabase.co` | `…/project/<ref>/settings/api` | `frontend/.env.local` as `NEXT_PUBLIC_SUPABASE_URL` (dev project) |
+| Project URL `https://<ref>.supabase.co` | `…/project/<ref>/settings/api` | `backend/.env` (dev) / `backend/.env.test` (test) as `SUPABASE_URL`, and `frontend/.env.local` as `NEXT_PUBLIC_SUPABASE_URL` (dev project) |
 | Publishable key `sb_publishable_…` | `…/project/<ref>/settings/api-keys` | `frontend/.env.local` as `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (dev project) |
 
 Never copy the **secret** key (`sb_secret_…`) or the legacy `service_role` key anywhere in `frontend/`. The frontend build fails if it finds one.

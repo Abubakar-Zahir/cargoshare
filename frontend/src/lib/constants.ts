@@ -1,6 +1,26 @@
 export const APP_NAME = "CargoShare";
 export const APP_DESCRIPTION = "Send small items with travelers going your way.";
-export const HOME_MESSAGE = "The frontend is set up. Features arrive in the next pull requests.";
+
+export const HOME_PATH = "/";
+export const LOGIN_PATH = "/login";
+export const ME_PATH = "/api/v1/me";
+export const API_TIMEOUT_MILLISECONDS = 5_000;
+
+export const LOGGED_OUT_MESSAGE = "Log in to continue.";
+export const SIGNED_IN_MESSAGE = "Signed in as";
+export const PROFILE_UNAVAILABLE_MESSAGE = "We could not load your profile. Please try again.";
+
+export const LOGIN_TITLE = "Log in";
+export const EMAIL_LABEL = "Email";
+export const PASSWORD_LABEL = "Password";
+export const LOG_IN_LABEL = "Log in";
+export const LOG_OUT_LABEL = "Log out";
+
+// Supabase answers 400 for a wrong password, an unknown email and an unconfirmed email.
+export const LOGIN_REFUSED_STATUS = 400;
+export const LOGIN_INVALID_MESSAGE = "Enter your email and password.";
+export const LOGIN_REFUSED_MESSAGE = "Wrong email or password.";
+export const LOGIN_UNAVAILABLE_MESSAGE = "We could not log you in right now. Please try again.";
 
 // Supabase key formats: the publishable key may reach the browser, secret keys never may.
 export const PUBLISHABLE_KEY_PREFIX = "sb_publishable_";
@@ -26,6 +46,7 @@ export const HSTS_HEADER = {
 // API / Supabase origins to these parts.
 export const CSP_HEADER = "Content-Security-Policy";
 export const NONCE_HEADER = "x-nonce";
+export const COOKIE_HEADER = "cookie";
 export const CSP_FIXED_DIRECTIVES = [
   "default-src 'self'",
   "img-src 'self' blob: data:",
