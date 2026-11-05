@@ -44,6 +44,29 @@ class UnauthorizedError(AppError):
     headers = SIGN_IN_REQUIRED_HEADERS
 
 
+class InvalidCredentialsError(UnauthorizedError):
+    code = "INVALID_CREDENTIALS"
+    message = "Wrong email or password."
+
+
+class UsernameTakenError(AppError):
+    status_code = HTTPStatus.CONFLICT
+    code = "USERNAME_TAKEN"
+    message = "That username is already taken."
+
+
+class EmailTakenError(AppError):
+    status_code = HTTPStatus.CONFLICT
+    code = "EMAIL_TAKEN"
+    message = "That email already has an account."
+
+
+class ResetRefusedError(AppError):
+    status_code = HTTPStatus.BAD_REQUEST
+    code = "RESET_REFUSED"
+    message = "Those details do not match."
+
+
 class RoleRequiredError(AppError):
     status_code = HTTPStatus.UNPROCESSABLE_CONTENT
     code = "ROLE_REQUIRED"

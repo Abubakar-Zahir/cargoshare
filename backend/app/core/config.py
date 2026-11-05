@@ -3,6 +3,8 @@ from typing import Literal
 from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app.core.constants import JWT_SECRET_MIN_LENGTH
+
 
 class Settings(BaseSettings):
     # hide_input_in_errors: a startup error must never print DATABASE_URL and its password.
@@ -16,7 +18,7 @@ class Settings(BaseSettings):
 
     app_env: Literal["development", "test", "production"]
     database_url: SecretStr
-    supabase_url: str
+    jwt_secret: SecretStr
     cors_origins: list[str]
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
 
@@ -27,12 +29,12 @@ class Settings(BaseSettings):
             raise ValueError("DATABASE_URL must start with postgresql://")
         return value
 
-    @field_validator("supabase_url")
+    @field_validator("jwt_secret")
     @classmethod
-    def supabase_url_is_https(cls, value: str) -> str:
-        if not value.startswith("https://"):
-            raise ValueError("SUPABASE_URL must start with https://")
-        return value.rstrip("/")
+    def jwt_secret_is_long_enough(cls, value: SecretStr) -> SecretStr:
+        if len(value.get_secret_value()) < JWT_SECRET_MIN_LENGTH:
+            raise ValueError(f"JWT_SECRET must be at least {JWT_SECRET_MIN_LENGTH} characters")
+        return value
 
     @field_validator("cors_origins")
     @classmethod

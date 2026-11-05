@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1 import health, me
+from app.api.v1 import auth, health, me
 from app.core.config import Settings, get_settings
 from app.core.constants import (
     API_PREFIX,
@@ -18,7 +18,7 @@ from app.core.db import create_engine, create_sessionmaker
 from app.core.errors import register_exception_handlers
 from app.core.logging import configure_logging
 from app.core.middleware import RequestContextMiddleware
-from app.core.security import TokenVerifier
+from app.core.security import AccessTokens
 
 
 def create_app(settings: Settings) -> FastAPI:
@@ -38,7 +38,7 @@ def create_app(settings: Settings) -> FastAPI:
         redoc_url=None,
         lifespan=lifespan,
     )
-    app.state.token_verifier = TokenVerifier(settings.supabase_url)
+    app.state.access_tokens = AccessTokens(settings.jwt_secret.get_secret_value())
     register_exception_handlers(app)
     app.add_middleware(
         CORSMiddleware,
@@ -49,6 +49,7 @@ def create_app(settings: Settings) -> FastAPI:
     )
     app.add_middleware(RequestContextMiddleware, hsts=settings.app_env == "production")
     app.include_router(health.router, prefix=API_PREFIX)
+    app.include_router(auth.router, prefix=API_PREFIX)
     app.include_router(me.router, prefix=API_PREFIX)
     return app
 

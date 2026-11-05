@@ -4,14 +4,27 @@ API_PREFIX = "/api/v1"
 
 CONNECT_TIMEOUT_SECONDS = 5
 
-# Supabase access tokens. ES256 is the signing algorithm of our projects' keys.
-JWT_ALGORITHMS = ["ES256"]
-JWT_AUDIENCE = "authenticated"
-JWT_ROLE = "authenticated"
+# Our access tokens. HS256 fits because only this backend creates and checks them.
+JWT_ALGORITHM = "HS256"
+JWT_ISSUER = "cargoshare"
+JWT_AUDIENCE = "cargoshare-api"
 JWT_REQUIRED_CLAIMS = ["exp", "iat", "iss", "aud", "sub"]
 JWT_CLOCK_SKEW_SECONDS = 60
-JWKS_CACHE_SECONDS = 600
-JWKS_TIMEOUT_SECONDS = 5
+JWT_SECRET_MIN_LENGTH = 32
+ACCESS_TOKEN_LIFETIME_SECONDS = 900
+REFRESH_TOKEN_LIFETIME_SECONDS = 2_592_000
+REFRESH_TOKEN_BYTES = 32
+
+# Wrong passwords and wrong dates of birth count together, so a guesser gets 5 tries in total.
+MAX_FAILED_ATTEMPTS = 5
+LOCK_MINUTES = 15
+
+USERNAME_PATTERN = r"^[a-z0-9_]{3,30}$"
+USERNAME_UNIQUE_CONSTRAINT = "profiles_username_key"
+PASSWORD_MIN_LENGTH = 10
+PASSWORD_MAX_LENGTH = 128
+DATE_OF_BIRTH_MAX_AGE_YEARS = 120
+DAYS_PER_YEAR = 365
 
 DISPLAY_NAME_MAX_LENGTH = 60
 
