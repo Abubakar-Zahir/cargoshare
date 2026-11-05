@@ -7,9 +7,9 @@
 | Field | Value |
 |---|---|
 | Step | PR6: Own sign-in with passwords and JWT |
-| Status | IN PROGRESS (committed locally on the pushed PR6 branch; not yet run against the database) |
-| Branch | `own_auth_backend` (PR6), `own_auth_login` (PR6b), `own_auth_signup` (PR6c), stacked in that order. `sign_in_complete` is replaced; PR4 and PR5 are merged |
-| Next step | Owner applies the migration, updates `backend/.env`, tests on `own_auth_signup`, closes the old PR6 and pushes the three branches. PR7 waits. |
+| Status | IN PROGRESS: PR6a merged (#12), PR6b merged (#13); PR6c (`own_auth_signup`) committed locally, not pushed |
+| Branch | `own_auth_signup` (PR6c), 3 commits on top of `main`. `own_auth_backend` and `own_auth_login` are merged. `sign_in_complete` is replaced and no longer on GitHub |
+| Next step | Owner pushes PR6c (base `main`). Then PR7 (`design_basics`) is rebuilt on the new auth. Refresh token rotation and OTP stay in "Do before production" |
 
 ## Steps
 > Renumbered 2026-10-16: backend setup is PR1, frontend setup is PR2, old PR1 to PR28 are now PR3 to PR30. History below keeps the old numbers.
@@ -59,11 +59,31 @@
 - Notes:
 -->
 
+### 2026-11-09 | PR6c shared types file
+- Owner asked for one file for shared types and approved PR6c going to 17 files (2 over the limit) to include it.
+- New `frontend/src/lib/types.ts`: API shapes taken from the generated schema, `ApiResult`, `AuthField`, `AuthFormState`. The form field lists in `constants.ts` are now typed with `AuthField`, so a typo fails the build (checked by hand with a deliberate typo). Component props stay next to their component.
+- Fixed: `session.ts` wrote the token shape by hand, against the rule that API types come only from the generated schema.
+- Fixed: the roadmap said PR6b had 14 files; it had 15.
+
+### 2026-11-09 | PR6b merged
+- PR6b merged into `main` (#13, merge commit `92458b8`). Login on `main` works through our own backend again.
+- PR6c (`own_auth_signup`) sits on top, no rebase needed. Old PR6 branch `sign_in_complete` is gone from GitHub.
+
+### 2026-11-07 | PR6a merged, PR6b push
+- PR6a merged into `main` (#12, merge commit `97d244c`). PR6b (`own_auth_login`, 2 commits) sits on top of it, so no rebase is needed; its PR base is `main`.
+- Login on `main` is broken until PR6b is merged (frontend still on Supabase Auth there).
+
+### 2026-11-06 | PR6a pushed, token storage questions
+- PR6a (`own_auth_backend`) pushed by the Owner. PR6b (`own_auth_login`) checked on its own (lint, typecheck, format, build pass) and ready to push with base `own_auth_backend`.
+- Owner asked about tokens in cookies, interception and token splitting. Kept `httpOnly` cookies; splitting adds nothing because page scripts never read the token.
+- Refresh token rotation explained; Owner chose to do it later (added under "Do before production").
+
 ### 2026-11-05 | PR6 moved to our own auth
 - Reviewer told the Owner to stop using Supabase Auth (2026-11-04). Owner decisions: database stays on Supabase; JWT; no email confirmation; forgot password checks the date of birth; OTP comes last (roadmap PR28b); no tests. Owner first asked for all of it in the pushed PR6, then asked to split it (38 files was too many). Now three PRs, each within 15 files.
 - I warned that a date of birth is not secret. OTP must replace it before real users.
 - Choices of mine: Argon2id; HS256; 15-minute access tokens; 30-day refresh tokens, stored hashed and not rotated (rotation can log people out when two tabs refresh at once); 5 wrong tries block login and reset for 15 minutes; password limit raised from 72 to 128 because Argon2 has no 72-byte limit.
 - The migration deletes the test accounts' profiles. A permission check stopped me applying it, so the Owner runs it. Not tested against the database yet.
+- Cleanup: removed Supabase Auth from `docs/ERD.md`, `backend.md`, `frontend.md` and the roadmap. Old migrations stay as history, because applied migrations are never edited and a new database needs them in order.
 - PR7 needs rebuilding on this later: it changes the same auth files. Password reset retest from 2026-11-03 no longer applies.
 
 ### 2026-11-04 | PR6 PR title and body
@@ -180,6 +200,7 @@
 
 ## Decisions
 <!-- Format: - YYYY-MM-DD: decision (why). -->
+- 2026-11-09: PR6c may have 17 counted files instead of 15, to include the shared types file (Owner).
 ### New plan (2026-10-14)
 - 2026-10-14: Work is built **feature by feature** in the order of `docs/ROADMAP.md` (Step 0 + PR1 to PR28). The phase lists in `backend.md` and `frontend.md` are reference only.
 - 2026-10-14: **10 to 15 counted files per PR**, max 3 commits. Lockfiles, generated files, PROGRESS and LEARNING are not counted.
@@ -232,7 +253,8 @@ _none yet_
 <!-- Postponed on purpose. Every item must be done before real users. -->
 - [ ] 2026-11-02: Rate limiting on the API (slowapi), moved from PR4 to PR29.
 - [ ] 2026-10-20: Limited backend database user `cargoshare_backend` (data access only, bypasses RLS); grant on all tables + default privileges; switch `DATABASE_URL` off `postgres` (PR29).
-- [ ] 2026-10-20: Supabase Auth dashboard settings: email confirmation, minimum password length 10, JWT expiry 3600, refresh token rotation, asymmetric signing keys (before PR6 signup at the latest).
+- [x] 2026-10-20: Supabase Auth dashboard settings: email confirmation, minimum password length 10, JWT expiry 3600, refresh token rotation, asymmetric signing keys (before PR6 signup at the latest). Resolved 2026-11-06: no longer applies, sign-in moved off Supabase Auth (2026-11-05).
+- [ ] 2026-11-06: Refresh token rotation in our own auth (Owner decision: later). `/auth/refresh` returns a new refresh token each time and cancels the old one; a reused old token cancels all of that user's tokens. Needs a "used" marker on `refresh_tokens` (new migration), a short grace period for two tabs refreshing at once, and `proxy.ts` saving the new refresh cookie. Until then a stolen refresh token works for 30 days or until logout.
 - [ ] 2026-10-20: Tests back in git and CI workflows (paused by the Owner and the Reviewer). CI part resolved 2026-11-02 (PR3b); tests still paused.
 - [ ] 2026-10-20: Answer the PR1 Reviewer comment "why we need this?" on `config.py` (line unknown).
 

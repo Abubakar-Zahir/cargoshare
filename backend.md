@@ -168,7 +168,7 @@ cargoshare/
 ### 2.5 Key architecture decisions (write each as an ADR in `docs/ADR/` during B0)
 1. **Backend owns all writes.** Postgres RLS is enabled on every public table with **no policies for `anon` or `authenticated`**, so the Supabase client in the browser cannot read or write app tables even if misused. FastAPI connects with a dedicated DB role that bypasses RLS.
 2. **Our own auth (reviewer decision, 2026-11-04; replaces Supabase Auth).** The backend stores Argon2id password hashes in `public.credentials` and refresh token hashes in `public.refresh_tokens`. No email confirmation for now. Forgot password checks the date of birth until OTP replaces it (PR28b). App data lives in `public.profiles`. The database stays on Supabase.
-3. **Admin role lives in `app_metadata`**, never `user_metadata` (users can edit `user_metadata` themselves). The backend also checks `profiles.is_admin`, and both must agree.
+3. **Admin role lives in `profiles.is_admin`.** Signup cannot set it, and it can only be changed directly in the database or by an admin.
 4. **JWT signed with HS256** using `JWT_SECRET`, which only the backend holds. Access tokens last 15 minutes. Refresh tokens are random, last 30 days, and can be cancelled in the database.
 5. **Money** is `numeric(12,2)` in PKR, handled as `Decimal` in Python. Never float. **Weight** is `numeric(6,2)` kg.
 6. **IDs** are UUIDv4 (`gen_random_uuid()`), never sequential ints in URLs.
@@ -435,12 +435,12 @@ AC:
 - Unhandled exception returns 500 envelope without stack trace (test).
 - Every response has `X-Request-ID` and the security headers (test).
 - App refuses to boot with a missing required env var (test).
-Commits: `feat(core): config, db session, logging and error envelope` / `feat(auth): supabase jwt verification via jwks` / `test(core): security headers, errors and auth failure modes`
+Commits: `feat(core): config, db session, logging and error envelope` / `feat(auth): our own jwt verification` / `test(core): security headers, errors and auth failure modes`
 
 ### Phase B2: Schema, Profiles and Roles
 **Goal:** full database schema from Section 3 plus profile endpoints.
 Tasks:
-- Migrations: enums, all tables, constraints, indexes, `updated_at` triggers, append-only triggers, profile-on-signup trigger, RLS enabled with no anon/authenticated policies, `user_rating_summary` view, restricted keywords seed.
+- Migrations: enums, all tables, constraints, indexes, `updated_at` triggers, append-only triggers, RLS enabled with no anon/authenticated policies, `user_rating_summary` view, restricted keywords seed.
 - SQLAlchemy models mirroring tables. A test asserts models and DB columns match.
 - `GET/PATCH /me` (display_name, roles; enforce at least one role, matching DB check), `GET /users/{username}` (public profile + rating summary).
 AC:
@@ -505,7 +505,7 @@ AC:
 Commits: `feat(ratings): role-specific ratings` / `feat(dashboard): aggregated dashboard endpoint` / `test(ratings): eligibility rules and dashboard query budget`
 
 ### Phase B9: Admin
-Tasks: admin dependency (app_metadata role AND profiles.is_admin), verification queue with bulk approve/reject, document signed URL, dispute management with resolution flow (Section 4.5), user listing/search/deactivate, stats endpoint (active trips, total payments count and sum, open disputes, pending verifications, shipments by status, signups last 30 days).
+Tasks: admin dependency (profiles.is_admin), verification queue with bulk approve/reject, document signed URL, dispute management with resolution flow (Section 4.5), user listing/search/deactivate, stats endpoint (active trips, total payments count and sum, open disputes, pending verifications, shipments by status, signups last 30 days).
 AC:
 - Every admin endpoint returns 403 for a normal user and for a user with only one of the two admin flags.
 - Deactivated user's existing token is rejected on the next request.

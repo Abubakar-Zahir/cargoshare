@@ -31,11 +31,12 @@ Setup is split into two normal PRs at the Reviewer's request: **PR1 backend setu
 
 ## 2. Entity diagram (database)
 
-Every table lives in Supabase Postgres and is ours. Sign-in does not use Supabase Auth (PR6). `credentials` and `refresh_tokens` hold sign-in data and are not drawn here. The PR that creates each table is shown in brackets.
+Every table lives in Supabase Postgres and is ours. Sign-in does not use Supabase Auth (PR6). The PR that creates each table is shown in brackets.
 
 ```mermaid
 erDiagram
-    AUTH_USERS ||--|| PROFILES : "has one"
+    PROFILES ||--|| CREDENTIALS : "has one"
+    PROFILES ||--o{ REFRESH_TOKENS : "has one per login"
     PROFILES ||--o{ ID_VERIFICATIONS : "uploads"
     PROFILES ||--o{ TRIPS : "posts (traveler)"
     PROFILES ||--o{ SHIPMENTS : "requests (sender)"
@@ -46,10 +47,16 @@ erDiagram
     PROFILES ||--o{ RATINGS : "gives and receives"
     PROFILES ||--o{ AUDIT_LOG : "acts"
 
-    AUTH_USERS {
-        uuid id PK
-        text email
-        jsonb app_metadata "admin role lives here"
+    CREDENTIALS {
+        uuid user_id PK "[PR6]"
+        citext email UK
+        text password_hash
+        date date_of_birth
+    }
+    REFRESH_TOKENS {
+        uuid id PK "[PR6]"
+        uuid user_id FK
+        text token_hash UK
     }
     PROFILES {
         uuid id PK "[PR3]"
@@ -245,10 +252,10 @@ Reviewer decision (2026-11-04): stop using Supabase Auth. Split in three at the 
 **PR6: Backend auth (15 files).** `supabase/migrations/20261105120000_own_auth.sql`, `app/api/v1/auth.py`, `app/services/auth.py`, `app/repos/auth.py`, `app/schemas/auth.py`, `app/models/auth.py`, `app/core/security.py` (Argon2id, JWT), config, constants, errors.
 **Demo:** call `/api/v1/auth/signup`, `/login`, `/refresh`, `/logout` and `/reset-password`.
 
-**PR6b: Log in and log out (14 files).** `src/lib/auth/session.ts`, `src/lib/auth/actions.ts`, `src/lib/api/client.ts`, `src/proxy.ts` (renews the token), login and home pages. Removes the Supabase libraries and `src/lib/supabase/server.ts`.
+**PR6b: Log in and log out (15 files).** `src/lib/auth/session.ts`, `src/lib/auth/actions.ts`, `src/lib/api/client.ts`, `src/proxy.ts` (renews the token), login and home pages. Removes the Supabase libraries and `src/lib/supabase/server.ts`.
 **Demo:** log in with an account made through the API; see the username; log out.
 
-**PR6c: Sign up, forgot password, protected pages (15 files).** Sign up and forgot password pages, `src/components/auth/auth-form.tsx` (replaces `login-form.tsx`), `src/proxy.ts` (redirects), docs. Email confirmation is dropped for now.
+**PR6c: Sign up, forgot password, protected pages (17 files, over the limit with the Owner's OK on 2026-11-09).** Sign up and forgot password pages, `src/components/auth/auth-form.tsx` (replaces `login-form.tsx`), `src/proxy.ts` (redirects), `src/lib/types.ts` (shared types), docs. Email confirmation is dropped for now.
 **Demo:** sign up and land on the home page; forgot password with the date of birth; open `/` logged out and get sent to login.
 
 ### PR7: Design basics (~14 files)
