@@ -113,7 +113,7 @@ frontend/
   src/
     app/
       (marketing)/page.tsx                 landing
-      (auth)/login, signup, forgot-password, reset-password, auth/callback
+      (auth)/login, signup, forgot-password
       (app)/layout.tsx                     authenticated shell
       (app)/dashboard                      Home
       (app)/search
