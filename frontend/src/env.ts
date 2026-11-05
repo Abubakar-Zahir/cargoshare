@@ -1,7 +1,7 @@
 // Checks the frontend's environment variables once, when the app starts or builds
 // (next.config.ts imports this file), and stops with a clear error if:
-// - one of the 4 public settings is missing or malformed, or
-// - any Supabase secret / service role key is present (it would be exposed to browsers).
+// - one of the 2 public settings is missing or malformed, or
+// - any secret key is present (it could be exposed to browsers).
 // Other files import `env` from here instead of reading process.env directly.
 //
 // Note: this file is loaded by next.config.ts, and Next.js compiles that chain without
@@ -10,15 +10,9 @@
 // below is relative. Everywhere else we use "@/".
 import { z } from "zod";
 
-import {
-  FORBIDDEN_ENV_VARIABLES,
-  PUBLISHABLE_KEY_PREFIX,
-  SECRET_KEY_PREFIX,
-} from "./lib/constants"; // relative on purpose: see the note below
+import { FORBIDDEN_ENV_VARIABLES, SECRET_KEY_PREFIX } from "./lib/constants"; // relative on purpose: see the note above
 
 const publicEnvSchema = z.object({
-  NEXT_PUBLIC_SUPABASE_URL: z.url(),
-  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().startsWith(PUBLISHABLE_KEY_PREFIX),
   NEXT_PUBLIC_API_URL: z.url(),
   NEXT_PUBLIC_SITE_URL: z.url(),
 });
@@ -59,7 +53,7 @@ export const loadPublicEnv = (source: NodeJS.ProcessEnv): PublicEnv => {
   const secretKeys = findSecretKeys(source);
   if (secretKeys.length > 0) {
     throw new Error(
-      `Secret Supabase keys must never be in the frontend environment. Remove: ${secretKeys.join(", ")}`,
+      `Secret keys must never be in the frontend environment. Remove: ${secretKeys.join(", ")}`,
     );
   }
   const result = publicEnvSchema.safeParse(source);

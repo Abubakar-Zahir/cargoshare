@@ -2,15 +2,15 @@
 
 import { redirect } from "next/navigation";
 
+import { logInRequest, logOutRequest } from "@/lib/api/client";
+import { clearSession, getRefreshToken, saveSession } from "@/lib/auth/session";
 import {
+  AUTH_ERROR_MESSAGES,
+  AUTH_UNAVAILABLE_MESSAGE,
   HOME_PATH,
   LOGIN_INVALID_MESSAGE,
   LOGIN_PATH,
-  LOGIN_REFUSED_MESSAGE,
-  LOGIN_REFUSED_STATUS,
-  LOGIN_UNAVAILABLE_MESSAGE,
 } from "@/lib/constants";
-import { createSupabaseClient } from "@/lib/supabase/server";
 import { loginSchema } from "@/lib/validation/auth";
 
 export type LoginState = Readonly<{
@@ -21,24 +21,25 @@ export type LoginState = Readonly<{
 export const logIn = async (_previous: LoginState, formData: FormData): Promise<LoginState> => {
   const submittedEmail = formData.get("email");
   const email = typeof submittedEmail === "string" ? submittedEmail : "";
-
   const credentials = loginSchema.safeParse({ email, password: formData.get("password") });
   if (!credentials.success) {
     return { error: LOGIN_INVALID_MESSAGE, email };
   }
 
-  const supabase = await createSupabaseClient();
-  const { error } = await supabase.auth.signInWithPassword(credentials.data);
-  if (error) {
-    const refused = error.status === LOGIN_REFUSED_STATUS;
-    return { error: refused ? LOGIN_REFUSED_MESSAGE : LOGIN_UNAVAILABLE_MESSAGE, email };
+  const { data, code } = await logInRequest(credentials.data);
+  if (!data) {
+    return { error: AUTH_ERROR_MESSAGES[code ?? ""] ?? AUTH_UNAVAILABLE_MESSAGE, email };
   }
 
+  await saveSession(data);
   redirect(HOME_PATH);
 };
 
 export const logOut = async (): Promise<void> => {
-  const supabase = await createSupabaseClient();
-  await supabase.auth.signOut({ scope: "local" });
+  const refreshToken = await getRefreshToken();
+  if (refreshToken) {
+    await logOutRequest(refreshToken);
+  }
+  await clearSession();
   redirect(LOGIN_PATH);
 };

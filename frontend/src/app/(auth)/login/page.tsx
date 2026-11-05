@@ -2,19 +2,15 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import LoginForm from "@/app/(auth)/login/login-form";
+import { getAccessToken } from "@/lib/auth/session";
 import { EMAIL_LABEL, HOME_PATH, LOG_IN_LABEL, LOGIN_TITLE, PASSWORD_LABEL } from "@/lib/constants";
-import { createSupabaseClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: LOGIN_TITLE,
 };
 
 const LoginPage = async () => {
-  const supabase = await createSupabaseClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (session) {
+  if (await getAccessToken()) {
     redirect(HOME_PATH);
   }
 

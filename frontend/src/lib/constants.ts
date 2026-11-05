@@ -4,9 +4,14 @@ export const APP_DESCRIPTION = "Send small items with travelers going your way."
 export const HOME_PATH = "/";
 export const LOGIN_PATH = "/login";
 export const ME_PATH = "/api/v1/me";
+export const LOGIN_API_PATH = "/api/v1/auth/login";
+export const REFRESH_API_PATH = "/api/v1/auth/refresh";
+export const LOGOUT_API_PATH = "/api/v1/auth/logout";
 export const API_TIMEOUT_MILLISECONDS = 5_000;
 
-export const LOGGED_OUT_MESSAGE = "Log in to continue.";
+export const ACCESS_TOKEN_COOKIE = "access_token";
+export const REFRESH_TOKEN_COOKIE = "refresh_token";
+
 export const SIGNED_IN_MESSAGE = "Signed in as";
 export const PROFILE_UNAVAILABLE_MESSAGE = "We could not load your profile. Please try again.";
 
@@ -16,16 +21,25 @@ export const PASSWORD_LABEL = "Password";
 export const LOG_IN_LABEL = "Log in";
 export const LOG_OUT_LABEL = "Log out";
 
-// Supabase answers 400 for a wrong password, an unknown email and an unconfirmed email.
-export const LOGIN_REFUSED_STATUS = 400;
-export const LOGIN_INVALID_MESSAGE = "Enter your email and password.";
-export const LOGIN_REFUSED_MESSAGE = "Wrong email or password.";
-export const LOGIN_UNAVAILABLE_MESSAGE = "We could not log you in right now. Please try again.";
+// Same limit as the backend (app/core/constants.py).
+export const PASSWORD_MAX_LENGTH = 128;
 
-// Supabase key formats: the publishable key may reach the browser, secret keys never may.
-export const PUBLISHABLE_KEY_PREFIX = "sb_publishable_";
+export const LOGIN_INVALID_MESSAGE = "Enter your email and password.";
+export const AUTH_UNAVAILABLE_MESSAGE = "We could not do that right now. Please try again.";
+// Backend error codes we can explain. Anything else gets AUTH_UNAVAILABLE_MESSAGE.
+// It reads the same for an unknown account, so nobody can test which accounts exist.
+export const AUTH_ERROR_MESSAGES: Readonly<Record<string, string>> = {
+  INVALID_CREDENTIALS:
+    "Wrong email or password. After 5 wrong tries, this account is blocked for 15 minutes.",
+};
+
+// Secret keys must never reach the frontend: anything here could end up in the browser.
 export const SECRET_KEY_PREFIX = "sb_secret_";
-export const FORBIDDEN_ENV_VARIABLES = ["SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SECRET_KEY"];
+export const FORBIDDEN_ENV_VARIABLES = [
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "SUPABASE_SECRET_KEY",
+  "JWT_SECRET",
+];
 
 // Two years: browsers keep using HTTPS for this site for that long after one visit.
 export const HSTS_MAX_AGE_SECONDS = 63_072_000;
@@ -43,7 +57,7 @@ export const HSTS_HEADER = {
 };
 
 // Content-Security-Policy (src/proxy.ts). The proxy adds the per-request nonce and the
-// API / Supabase origins to these parts.
+// API origin to these parts.
 export const CSP_HEADER = "Content-Security-Policy";
 export const NONCE_HEADER = "x-nonce";
 export const COOKIE_HEADER = "cookie";

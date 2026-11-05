@@ -1,14 +1,17 @@
-import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { env } from "@/env";
+import { getMyProfile, refreshAccessToken } from "@/lib/api/client";
+import { sessionCookieOptions } from "@/lib/auth/session";
 import {
+  ACCESS_TOKEN_COOKIE,
   COOKIE_HEADER,
   CSP_DEV_SCRIPT_SOURCE,
   CSP_FIXED_DIRECTIVES,
   CSP_HEADER,
   CSP_UPGRADE_INSECURE_REQUESTS,
   NONCE_HEADER,
+  REFRESH_TOKEN_COOKIE,
 } from "@/lib/constants";
 
 const contentSecurityPolicy = (nonce: string): string => {
@@ -17,7 +20,7 @@ const contentSecurityPolicy = (nonce: string): string => {
     ...CSP_FIXED_DIRECTIVES,
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? ` ${CSP_DEV_SCRIPT_SOURCE}` : ""}`,
     `style-src 'self' 'nonce-${nonce}'`,
-    `connect-src 'self' ${new URL(env.NEXT_PUBLIC_API_URL).origin} ${new URL(env.NEXT_PUBLIC_SUPABASE_URL).origin}`,
+    `connect-src 'self' ${new URL(env.NEXT_PUBLIC_API_URL).origin}`,
   ];
   if (env.NEXT_PUBLIC_SITE_URL.startsWith("https://")) {
     directives.push(CSP_UPGRADE_INSECURE_REQUESTS);
@@ -35,32 +38,25 @@ export const proxy = async (request: NextRequest): Promise<NextResponse> => {
 
   let response = NextResponse.next({ request: { headers: requestHeaders } });
 
-  const supabase = createServerClient(
-    env.NEXT_PUBLIC_SUPABASE_URL,
-    env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-    {
-      cookies: {
-        getAll: () => request.cookies.getAll(),
-        setAll: (cookiesToSet, cacheHeaders) => {
-          // The page must see the refreshed session too, not only the browser.
-          cookiesToSet.forEach(({ name, value }) => {
-            request.cookies.set(name, value);
-          });
-          requestHeaders.set(COOKIE_HEADER, request.cookies.toString());
-          response = NextResponse.next({ request: { headers: requestHeaders } });
-          cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options);
-          });
-          Object.entries(cacheHeaders).forEach(([name, value]) => {
-            response.headers.set(name, value);
-          });
-        },
-      },
-    },
-  );
+  // Asks the backend, so a forged cookie does not count as logged in.
+  const accessToken = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
+  const isLoggedIn = accessToken !== undefined && (await getMyProfile(accessToken)) !== null;
 
-  // Refreshes an expired session. It writes the new cookies through setAll above.
-  await supabase.auth.getUser();
+  const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
+  if (!isLoggedIn && refreshToken) {
+    const refreshed = await refreshAccessToken(refreshToken);
+    if (refreshed) {
+      // The page must see the new token too, not only the browser.
+      request.cookies.set(ACCESS_TOKEN_COOKIE, refreshed.access_token);
+      requestHeaders.set(COOKIE_HEADER, request.cookies.toString());
+      response = NextResponse.next({ request: { headers: requestHeaders } });
+      response.cookies.set(
+        ACCESS_TOKEN_COOKIE,
+        refreshed.access_token,
+        sessionCookieOptions(refreshed.access_expires_in),
+      );
+    }
+  }
 
   response.headers.set(CSP_HEADER, csp);
   return response;
