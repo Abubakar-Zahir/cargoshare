@@ -8,6 +8,8 @@ import {
   LOGOUT_API_PATH,
   ME_PATH,
   REFRESH_API_PATH,
+  RESET_PASSWORD_API_PATH,
+  SIGNUP_API_PATH,
 } from "@/lib/constants";
 
 type Profile = components["schemas"]["ProfileResponse"];
@@ -38,6 +40,9 @@ const send = async <T>(
   }
 };
 
+export const signUpRequest = (body: components["schemas"]["SignupRequest"]) =>
+  send(() => api.POST(SIGNUP_API_PATH, { body, ...requestOptions() }));
+
 export const logInRequest = (body: components["schemas"]["LoginRequest"]) =>
   send(() => api.POST(LOGIN_API_PATH, { body, ...requestOptions() }));
 
@@ -45,6 +50,9 @@ export const logOutRequest = (refreshToken: string) =>
   send(() =>
     api.POST(LOGOUT_API_PATH, { body: { refresh_token: refreshToken }, ...requestOptions() }),
   );
+
+export const resetPasswordRequest = (body: components["schemas"]["ResetPasswordRequest"]) =>
+  send(() => api.POST(RESET_PASSWORD_API_PATH, { body, ...requestOptions() }));
 
 export const refreshAccessToken = async (
   refreshToken: string,

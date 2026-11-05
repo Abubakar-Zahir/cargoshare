@@ -63,6 +63,7 @@ exact commands to run and see the feature
 
 ## 7. Hard rules (from the specs)
 - Supabase cloud only: `cargoshare-dev` for development, `cargoshare-test` for tests (tests may wipe it). No local Postgres or Docker. CLI always pinned: `npx supabase@2.121.0`.
+- Sign-in is ours, not Supabase Auth (reviewer decision 2026-11-04). The backend hashes passwords and issues JWTs. Supabase is only the database. `JWT_SECRET` never goes in the frontend.
 - The backend owns all business rules and all database writes. The frontend never writes to the database.
 - Frontend API types come only from the generated OpenAPI schema.
 - Ambiguity means ask first. Never invent library APIs or API shapes.

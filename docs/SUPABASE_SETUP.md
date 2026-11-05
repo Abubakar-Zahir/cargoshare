@@ -29,21 +29,13 @@ If the labels on your screen differ, stop and tell Claude Code what you see.
 Open `https://supabase.com/dashboard/project/<ref>/settings/api` (or **Integrations → Data API**) and make sure the Data API is **disabled**. The backend reads and writes the database directly, so the browser never needs it.
 
 ## 3. Auth settings
-| Setting | Value | Where |
-|---|---|---|
-| Email provider | Enabled | `…/project/<ref>/auth/providers?provider=Email` |
-| Confirm email | **On** | same page |
-| Minimum password length | **10** | same page |
-| Access token (JWT) expiry | **3600** seconds | `…/project/<ref>/auth/sessions` |
-| Refresh token reuse detection (rotation) | **On** (default) | Auth settings, Advanced |
+None needed. Our backend handles sign-in (decision of 2026-11-04), so Supabase is only the database. Do not turn on any Supabase Auth features for this app.
 
-## 4. Asymmetric JWT signing keys
-1. Open `…/project/<ref>/settings/jwt`.
-2. Click **Migrate JWT secret**. This creates a new standby key. Choose **ECC (P-256)** if asked.
-3. Click **Rotate keys** so the new key signs all new tokens.
-4. Do not revoke the legacy secret yet. PR2 decides that.
-
-The backend will later check tokens with the public keys at `https://<ref>.supabase.co/auth/v1/.well-known/jwks.json`.
+## 4. Backend sign-in secret
+`JWT_SECRET` signs our sign-in tokens and is not a Supabase value. Make one per environment and put it in `backend/.env` and `backend/.env.test` yourself:
+```
+openssl rand -hex 32
+```
 
 ## 5. Values to copy into local files
 Only the two project refs may be shared in chat. Everything else stays on your machine.
@@ -51,8 +43,6 @@ Only the two project refs may be shared in chat. Everything else stays on your m
 | Value | Where to find it | Goes into |
 |---|---|---|
 | Transaction pooler connection string (port **6543**) | **Connect** button (top of the project) → **Transaction pooler** | `backend/.env` (dev) / `backend/.env.test` (test) as `DATABASE_URL`, with `[YOUR-PASSWORD]` replaced. |
-| Project URL `https://<ref>.supabase.co` | `…/project/<ref>/settings/api` | `backend/.env` (dev) / `backend/.env.test` (test) as `SUPABASE_URL`, and `frontend/.env.local` as `NEXT_PUBLIC_SUPABASE_URL` (dev project) |
-| Publishable key `sb_publishable_…` | `…/project/<ref>/settings/api-keys` | `frontend/.env.local` as `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (dev project) |
 
 Never copy the **secret** key (`sb_secret_…`) or the legacy `service_role` key anywhere in `frontend/`. The frontend build fails if it finds one.
 
