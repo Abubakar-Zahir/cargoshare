@@ -1,54 +1,87 @@
 import asyncio
+import hashlib
+import secrets
 import uuid
+from datetime import UTC, datetime, timedelta
 
 import jwt
 import structlog
-from jwt import PyJWKClient
-from jwt.exceptions import PyJWKClientConnectionError, PyJWTError
+from argon2 import PasswordHasher
+from argon2.exceptions import InvalidHashError, VerificationError
+from jwt.exceptions import PyJWTError
 
 from app.core.constants import (
-    JWKS_CACHE_SECONDS,
-    JWKS_TIMEOUT_SECONDS,
-    JWT_ALGORITHMS,
+    ACCESS_TOKEN_LIFETIME_SECONDS,
+    JWT_ALGORITHM,
     JWT_AUDIENCE,
     JWT_CLOCK_SKEW_SECONDS,
+    JWT_ISSUER,
     JWT_REQUIRED_CLAIMS,
-    JWT_ROLE,
+    REFRESH_TOKEN_BYTES,
 )
-from app.core.errors import ServiceUnavailableError, UnauthorizedError
+from app.core.errors import UnauthorizedError
 
 logger = structlog.get_logger(__name__)
 
+password_hasher = PasswordHasher()
 
-class TokenVerifier:
-    """Checks Supabase access tokens against the project's public signing keys."""
+# Checked when an email is unknown. It matches no password, because nobody knows this random one.
+DUMMY_PASSWORD_HASH = password_hasher.hash(secrets.token_urlsafe(REFRESH_TOKEN_BYTES))
 
-    def __init__(self, supabase_url: str) -> None:
-        self.issuer = f"{supabase_url}/auth/v1"
-        self.keys = PyJWKClient(
-            f"{self.issuer}/.well-known/jwks.json",
-            lifespan=JWKS_CACHE_SECONDS,
-            timeout=JWKS_TIMEOUT_SECONDS,
+
+# Argon2 is slow on purpose, so it runs in a thread and other requests are not held up.
+async def hash_password(password: str) -> str:
+    return await asyncio.to_thread(password_hasher.hash, password)
+
+
+async def password_matches(password: str, password_hash: str) -> bool:
+    try:
+        return await asyncio.to_thread(password_hasher.verify, password_hash, password)
+    except VerificationError, InvalidHashError:
+        return False
+
+
+def new_refresh_token() -> str:
+    return secrets.token_urlsafe(REFRESH_TOKEN_BYTES)
+
+
+# SHA-256 is enough here because the token is long and random, unlike a password.
+def hash_refresh_token(token: str) -> str:
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+class AccessTokens:
+    """Creates and checks our access tokens. Only this backend holds the secret."""
+
+    def __init__(self, secret: str) -> None:
+        self.secret = secret
+
+    def create(self, user_id: uuid.UUID) -> str:
+        now = datetime.now(UTC)
+        return jwt.encode(
+            {
+                "sub": str(user_id),
+                "iss": JWT_ISSUER,
+                "aud": JWT_AUDIENCE,
+                "iat": now,
+                "exp": now + timedelta(seconds=ACCESS_TOKEN_LIFETIME_SECONDS),
+            },
+            self.secret,
+            algorithm=JWT_ALGORITHM,
         )
 
-    async def user_id_from(self, token: str) -> uuid.UUID:
+    def user_id_from(self, token: str) -> uuid.UUID:
         try:
-            # Fetching keys can use the network, so it must not block other requests.
-            key = await asyncio.to_thread(self.keys.get_signing_key_from_jwt, token)
             claims = jwt.decode(
                 token,
-                key.key,
-                algorithms=JWT_ALGORITHMS,
+                self.secret,
+                algorithms=[JWT_ALGORITHM],
                 audience=JWT_AUDIENCE,
-                issuer=self.issuer,
+                issuer=JWT_ISSUER,
                 leeway=JWT_CLOCK_SKEW_SECONDS,
                 options={"require": JWT_REQUIRED_CLAIMS},
             )
-            if claims.get("role") != JWT_ROLE:
-                raise UnauthorizedError
             return uuid.UUID(claims["sub"])
-        except PyJWKClientConnectionError as exc:
-            raise ServiceUnavailableError("Sign-in could not be checked right now.") from exc
         except (PyJWTError, ValueError) as exc:
             logger.info("token_rejected", reason=type(exc).__name__)
             raise UnauthorizedError from exc
