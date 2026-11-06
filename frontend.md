@@ -81,7 +81,7 @@ Next phase preview (do not start):
 
 CargoShare connects **Travelers** with spare luggage capacity to **Senders** who need small items carried along the same route. Flow: traveler posts trip → sender searches and requests space → traveler accepts (price auto-calculated) → sender pays (simulated) → handoff → delivery → ratings. Disputes and ID verification are handled by admins. Currency PKR, weights kg, single country (Pakistan).
 
-The frontend **never writes to the database**. It uses Supabase only for authentication (and direct uploads to signed URLs issued by the backend). All data comes from the FastAPI backend.
+The frontend **never writes to the database**. It uses Supabase only for direct uploads to signed URLs issued by the backend. All data comes from the FastAPI backend.
 
 ---
 
@@ -99,7 +99,7 @@ The frontend **never writes to the database**. It uses Supabase only for authent
 | Server state | TanStack Query |
 | Forms | react-hook-form + zod |
 | API client | `openapi-typescript` + `openapi-fetch` (generated, typed) |
-| Auth | `@supabase/ssr` (cookie based sessions) |
+| Auth | Our backend's JWTs, kept in `httpOnly` cookies |
 | Dates | date-fns + date-fns-tz (display in Asia/Karachi) |
 | Toasts | sonner |
 | Unit tests | Vitest + Testing Library |
@@ -113,7 +113,7 @@ frontend/
   src/
     app/
       (marketing)/page.tsx                 landing
-      (auth)/login, signup, forgot-password, reset-password, auth/callback
+      (auth)/login, signup, forgot-password
       (app)/layout.tsx                     authenticated shell
       (app)/dashboard                      Home
       (app)/search
@@ -133,7 +133,6 @@ frontend/
       feedback/      Skeletons, EmptyState, ErrorState
     lib/
       api/           generated schema.d.ts, client.ts, query keys, hooks per domain
-      supabase/      server.ts, client.ts, middleware.ts
       validation/    zod schemas mirroring backend limits
       format/        money, weight, dates
       upload/        signed upload helper
@@ -143,13 +142,12 @@ frontend/
 ```
 
 ### 2.3 Auth architecture
-- Supabase email + password signup with email confirmation, login, logout, forgot/reset password.
-- `@supabase/ssr` with cookie storage. `middleware.ts` refreshes the session on every request and redirects unauthenticated users away from `(app)` and `(admin)` routes.
-- On the server, **always use `supabase.auth.getUser()`** (validates with Supabase), never trust `getSession()` alone for authorization decisions.
-- API calls send `Authorization: Bearer <access_token>`. Server components fetch with the token from the cookie session; client components get it from the browser client.
+- Our backend handles signup, login, logout and forgot password (reviewer decision, 2026-11-04). No email confirmation for now. Forgot password uses the date of birth until OTP replaces it (PR28b).
+- Tokens live in `httpOnly` cookies set by server actions (`src/lib/auth/session.ts`). `src/proxy.ts` checks the access token with `GET /me` on every page, gets a new one with the refresh token when needed, and redirects logged-out users to `/login`.
+- API calls send `Authorization: Bearer <access_token>`. Page scripts cannot read the cookies, so calls that need a token run on the Next.js server.
 - On any 401 from the API: try one session refresh, retry once, else sign out and redirect to `/login?next=...`. Validate `next` is a same-origin relative path (no open redirect).
 - Admin routes: server-side check calling `GET /me` and requiring `is_admin`; UI hiding is not security, the backend enforces it.
-- Only `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_SITE_URL` (canonical site origin for metadata, sitemap and robots) are public. **The service role key must never exist in the frontend repo or env.** Add a build-time check that fails if it does.
+- Only `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_SITE_URL` (canonical site origin for metadata, sitemap and robots) are public. **The service role key and `JWT_SECRET` must never exist in the frontend repo or env.** Add a build-time check that fails if it does.
 
 ### 2.4 API layer
 - `pnpm gen:api` generates `src/lib/api/schema.d.ts` from `../docs/openapi.json`. CI fails if the generated file is out of date.
@@ -159,7 +157,7 @@ frontend/
 - Map error codes to friendly copy in one place (`lib/api/errors.ts`). Never show raw backend messages for 5xx.
 
 ### 2.5 Security
-- Strict headers in `next.config`: Content-Security-Policy (nonce based for scripts; `connect-src` limited to the API and Supabase URLs; `img-src` self, data:, blob:, Supabase storage), `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (camera, microphone, geolocation off), HSTS in production.
+- Strict headers in `next.config`: Content-Security-Policy (nonce based for scripts; `connect-src` limited to the API URL; `img-src` self, data:, blob:, Supabase storage), `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (camera, microphone, geolocation off), HSTS in production.
 - Never use `dangerouslySetInnerHTML`. User text rendered as text only.
 - Uploads: client-side type and size checks (UX only), compress images to WebP ≤ 1600px before upload, then backend confirm. Never display a file until the backend confirms it.
 - No PII or tokens in `localStorage`. No analytics in v1.
@@ -253,7 +251,7 @@ The bench (dev only, excluded from production build) is split into pages with a 
 
 **Landing (public, `/`)**: single-column editorial page, not bento. A large Fraunces headline and two actions (Send something, Carry something), then sections separated by hairline rules: how it works (4 numbered steps), a worked price example `5 kg × Rs 800 = Rs 4,000`, trust (ID checks, ratings, disputes), a sample trip pass, and a final call to action. Simple footer. Copy is short, confident, human. No lorem ipsum anywhere.
 
-**Page map** (signed in): Home `/dashboard`, Search `/search`, Requests `/requests`, My trips `/trips` (+ `/trips/new`, `/trips/[id]`, `/trips/[id]/edit`), Shipments `/shipments` (+ `/shipments/[id]`), `/disputes/[id]`, Wallet `/wallet`, Profile `/profile` (+ `/profile/[username]`, `/settings`, `/verification`), Admin `/admin/...`. Public: `/`, `/login`, `/signup`, `/forgot-password`, `/reset-password`, `/auth/callback`. Each page does one job; the dashboard links out rather than listing everything.
+**Page map** (signed in): Home `/dashboard`, Search `/search`, Requests `/requests`, My trips `/trips` (+ `/trips/new`, `/trips/[id]`, `/trips/[id]/edit`), Shipments `/shipments` (+ `/shipments/[id]`), `/disputes/[id]`, Wallet `/wallet`, Profile `/profile` (+ `/profile/[username]`, `/settings`, `/verification`), Admin `/admin/...`. Public: `/`, `/login`, `/signup`, `/forgot-password`. Each page does one job; the dashboard links out rather than listing everything.
 
 **Dashboard (`/dashboard`, Home)**: the only bento screen, deliberately lean: greeting, Your turn, next trip, three numbers, and Get started for new users. **Nothing else.**
 ```
@@ -359,8 +357,8 @@ AC: Landing Lighthouse mobile Performance ≥ 90, Accessibility 100; navigation 
 Commits: `feat(shell): responsive app shell and navigation` / `feat(landing): editorial landing page` / `feat(seo): metadata, og image and system pages`
 
 ### Phase F3: Authentication
-Tasks: `@supabase/ssr` server and browser clients, middleware session refresh + route protection, signup (username, email, password with strength meter, roles selection with at least one required, both default on), email confirmation screen and callback route, login, logout, forgot and reset password, safe `next` redirect, 401 refresh-and-retry logic.
-AC: E2E on the `cargoshare-test` project: signup reaches the "check your email" screen; a pre-confirmed user created via the Admin API in test setup logs in → dashboard → logout; the confirm callback route is tested with a mocked code exchange. Protected routes redirect when logged out. `next=https://evil.com` is ignored (test). Auth pages pass axe.
+Tasks: session cookies, proxy session refresh + route protection, signup (username, email, password with strength meter, date of birth, roles selection with at least one required, both default on), login, logout, forgot password, safe `next` redirect, 401 refresh-and-retry logic.
+AC: E2E on the `cargoshare-test` project: signup logs in straight away; a user logs in → dashboard → logout. Protected routes redirect when logged out. `next=https://evil.com` is ignored (test). Auth pages pass axe.
 Commits: `feat(auth): supabase ssr clients and route protection` / `feat(auth): signup, login and logout flows` / `feat(auth): password reset and safe redirects`
 
 ### Phase F4: API Layer and Dashboard
