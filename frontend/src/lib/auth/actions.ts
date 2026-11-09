@@ -13,18 +13,13 @@ import {
   NEXT_PARAM,
   PASSWORD_CHANGED_MESSAGE,
 } from "@/lib/constants";
+import type { AuthFormState } from "@/lib/types";
 import {
   forgotPasswordSchema,
   loginSchema,
   safeNextPath,
   signupSchema,
 } from "@/lib/validation/auth";
-
-export type AuthFormState = Readonly<{
-  error: string | null;
-  success: string | null;
-  values: Readonly<Record<string, string>> | null;
-}>;
 
 // Only the fields named here go back to the form, so a password is never sent back.
 const keepValues = (formData: FormData, names: readonly string[]): Record<string, string> => {

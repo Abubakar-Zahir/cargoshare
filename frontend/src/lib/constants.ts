@@ -1,3 +1,5 @@
+import type { AuthField } from "@/lib/types";
+
 export const APP_NAME = "CargoShare";
 export const APP_DESCRIPTION = "Send small items with travelers going your way.";
 
@@ -41,8 +43,13 @@ export const USERNAME_PATTERN = /^[a-z0-9_]{3,30}$/;
 export const PASSWORD_MIN_LENGTH = 10;
 export const PASSWORD_MAX_LENGTH = 128;
 
-const EMAIL_FIELD = { name: "email", label: "Email", type: "email", autoComplete: "email" };
-const DATE_OF_BIRTH_FIELD = {
+const EMAIL_FIELD: AuthField = {
+  name: "email",
+  label: "Email",
+  type: "email",
+  autoComplete: "email",
+};
+const DATE_OF_BIRTH_FIELD: AuthField = {
   name: "date_of_birth",
   label: "Date of birth",
   type: "date",
@@ -50,11 +57,11 @@ const DATE_OF_BIRTH_FIELD = {
 };
 const NEW_PASSWORD_HINT = `At least ${String(PASSWORD_MIN_LENGTH)} characters.`;
 
-export const LOGIN_FIELDS = [
+export const LOGIN_FIELDS: readonly AuthField[] = [
   EMAIL_FIELD,
   { name: "password", label: "Password", type: "password", autoComplete: "current-password" },
 ];
-export const SIGNUP_FIELDS = [
+export const SIGNUP_FIELDS: readonly AuthField[] = [
   {
     name: "username",
     label: "Username",
@@ -74,7 +81,7 @@ export const SIGNUP_FIELDS = [
   { name: "is_sender", label: "I want to send items", type: "checkbox", defaultChecked: true },
   { name: "is_traveler", label: "I want to carry items", type: "checkbox", defaultChecked: true },
 ];
-export const FORGOT_PASSWORD_FIELDS = [
+export const FORGOT_PASSWORD_FIELDS: readonly AuthField[] = [
   EMAIL_FIELD,
   DATE_OF_BIRTH_FIELD,
   {

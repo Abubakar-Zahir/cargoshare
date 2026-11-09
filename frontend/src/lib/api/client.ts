@@ -1,7 +1,7 @@
 import createClient from "openapi-fetch";
 
 import { env } from "@/env";
-import type { components, paths } from "@/lib/api/schema";
+import type { paths } from "@/lib/api/schema";
 import {
   API_TIMEOUT_MILLISECONDS,
   LOGIN_API_PATH,
@@ -11,12 +11,15 @@ import {
   RESET_PASSWORD_API_PATH,
   SIGNUP_API_PATH,
 } from "@/lib/constants";
-
-type Profile = components["schemas"]["ProfileResponse"];
-type AccessToken = components["schemas"]["AccessTokenResponse"];
-
-// ok is false when the backend refused, or could not be reached (then code is undefined).
-type ApiResult<T> = Readonly<{ ok: boolean; data: T | undefined; code: string | undefined }>;
+import type {
+  AccessToken,
+  ApiResult,
+  ErrorEnvelope,
+  LoginRequest,
+  Profile,
+  ResetPasswordRequest,
+  SignupRequest,
+} from "@/lib/types";
 
 const api = createClient<paths>({ baseUrl: env.NEXT_PUBLIC_API_URL });
 
@@ -28,7 +31,7 @@ const requestOptions = () => ({
 const send = async <T>(
   call: () => Promise<{
     data?: T;
-    error?: components["schemas"]["ErrorEnvelope"];
+    error?: ErrorEnvelope;
     response: Response;
   }>,
 ): Promise<ApiResult<T>> => {
@@ -40,10 +43,10 @@ const send = async <T>(
   }
 };
 
-export const signUpRequest = (body: components["schemas"]["SignupRequest"]) =>
+export const signUpRequest = (body: SignupRequest) =>
   send(() => api.POST(SIGNUP_API_PATH, { body, ...requestOptions() }));
 
-export const logInRequest = (body: components["schemas"]["LoginRequest"]) =>
+export const logInRequest = (body: LoginRequest) =>
   send(() => api.POST(LOGIN_API_PATH, { body, ...requestOptions() }));
 
 export const logOutRequest = (refreshToken: string) =>
@@ -51,7 +54,7 @@ export const logOutRequest = (refreshToken: string) =>
     api.POST(LOGOUT_API_PATH, { body: { refresh_token: refreshToken }, ...requestOptions() }),
   );
 
-export const resetPasswordRequest = (body: components["schemas"]["ResetPasswordRequest"]) =>
+export const resetPasswordRequest = (body: ResetPasswordRequest) =>
   send(() => api.POST(RESET_PASSWORD_API_PATH, { body, ...requestOptions() }));
 
 export const refreshAccessToken = async (

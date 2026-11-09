@@ -2,16 +2,7 @@
 
 import { useActionState } from "react";
 
-import type { AuthFormState } from "@/lib/auth/actions";
-
-type AuthField = Readonly<{
-  name: string;
-  label: string;
-  type: string;
-  autoComplete?: string;
-  hint?: string;
-  defaultChecked?: boolean;
-}>;
+import type { AuthField, AuthFormState } from "@/lib/types";
 
 type AuthFormProps = Readonly<{
   action: (previous: AuthFormState, formData: FormData) => Promise<AuthFormState>;

@@ -1,13 +1,7 @@
 import { cookies } from "next/headers";
 
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "@/lib/constants";
-
-type TokenPair = Readonly<{
-  access_token: string;
-  access_expires_in: number;
-  refresh_token: string;
-  refresh_expires_in: number;
-}>;
+import type { TokenPair } from "@/lib/types";
 
 // httpOnly: scripts in the page can never read these, so a script attack cannot steal them.
 export const sessionCookieOptions = (maxAge: number) =>
