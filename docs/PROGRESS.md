@@ -59,6 +59,10 @@
 - Notes:
 -->
 
+### 2026-11-11 | PR6c auth styling
+- Owner requested light styling and an extra local commit on PR6c, authorizing a fourth commit. Added a shared auth layout and scoped CSS for centered login, signup and forgot-password cards, responsive spacing, inputs, buttons and keyboard focus states. Replaced the uncommitted Tailwind wrappers (Tailwind is not installed).
+- Frontend lint, typecheck and formatting pass. Production build compiles, then fails with the pre-existing Next.js error: "Could not parse output from TypeScript's --showConfig." Browser appearance and live auth flows were not verified in this session.
+
 ### 2026-11-09 | PR6c shared types file
 - Owner asked for one file for shared types and approved PR6c going to 17 files (2 over the limit) to include it.
 - New `frontend/src/lib/types.ts`: API shapes taken from the generated schema, `ApiResult`, `AuthField`, `AuthFormState`. The form field lists in `constants.ts` are now typed with `AuthField`, so a typo fails the build (checked by hand with a deliberate typo). Component props stay next to their component.
