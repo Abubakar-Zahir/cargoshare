@@ -10,7 +10,11 @@ import {
   CSP_FIXED_DIRECTIVES,
   CSP_HEADER,
   CSP_UPGRADE_INSECURE_REQUESTS,
+  HOME_PATH,
+  LOGIN_PATH,
+  NEXT_PARAM,
   NONCE_HEADER,
+  PUBLIC_PATHS,
   REFRESH_TOKEN_COOKIE,
 } from "@/lib/constants";
 
@@ -40,12 +44,13 @@ export const proxy = async (request: NextRequest): Promise<NextResponse> => {
 
   // Asks the backend, so a forged cookie does not count as logged in.
   const accessToken = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
-  const isLoggedIn = accessToken !== undefined && (await getMyProfile(accessToken)) !== null;
+  let isLoggedIn = accessToken !== undefined && (await getMyProfile(accessToken)) !== null;
 
   const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
   if (!isLoggedIn && refreshToken) {
     const refreshed = await refreshAccessToken(refreshToken);
     if (refreshed) {
+      isLoggedIn = true;
       // The page must see the new token too, not only the browser.
       request.cookies.set(ACCESS_TOKEN_COOKIE, refreshed.access_token);
       requestHeaders.set(COOKIE_HEADER, request.cookies.toString());
@@ -56,6 +61,25 @@ export const proxy = async (request: NextRequest): Promise<NextResponse> => {
         sessionCookieOptions(refreshed.access_expires_in),
       );
     }
+  }
+
+  const redirectTo = (target: URL): NextResponse => {
+    const redirect = NextResponse.redirect(target);
+    response.cookies.getAll().forEach((cookie) => {
+      redirect.cookies.set(cookie);
+    });
+    return redirect;
+  };
+
+  const { pathname, search } = request.nextUrl;
+  const isPublicPath = PUBLIC_PATHS.includes(pathname);
+  if (!isLoggedIn && !isPublicPath) {
+    const loginUrl = new URL(LOGIN_PATH, request.url);
+    loginUrl.searchParams.set(NEXT_PARAM, `${pathname}${search}`);
+    return redirectTo(loginUrl);
+  }
+  if (isLoggedIn && isPublicPath) {
+    return redirectTo(new URL(HOME_PATH, request.url));
   }
 
   response.headers.set(CSP_HEADER, csp);

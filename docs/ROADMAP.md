@@ -31,11 +31,12 @@ Setup is split into two normal PRs at the Reviewer's request: **PR1 backend setu
 
 ## 2. Entity diagram (database)
 
-Every table lives in Supabase Postgres. `auth.users` is owned by Supabase Auth; everything else is ours. The PR that creates each table is shown in brackets.
+Every table lives in Supabase Postgres and is ours. Sign-in does not use Supabase Auth (PR6). The PR that creates each table is shown in brackets.
 
 ```mermaid
 erDiagram
-    AUTH_USERS ||--|| PROFILES : "has one"
+    PROFILES ||--|| CREDENTIALS : "has one"
+    PROFILES ||--o{ REFRESH_TOKENS : "has one per login"
     PROFILES ||--o{ ID_VERIFICATIONS : "uploads"
     PROFILES ||--o{ TRIPS : "posts (traveler)"
     PROFILES ||--o{ SHIPMENTS : "requests (sender)"
@@ -46,13 +47,19 @@ erDiagram
     PROFILES ||--o{ RATINGS : "gives and receives"
     PROFILES ||--o{ AUDIT_LOG : "acts"
 
-    AUTH_USERS {
-        uuid id PK
-        text email
-        jsonb app_metadata "admin role lives here"
+    CREDENTIALS {
+        uuid user_id PK "[PR6]"
+        citext email UK
+        text password_hash
+        date date_of_birth
+    }
+    REFRESH_TOKENS {
+        uuid id PK "[PR6]"
+        uuid user_id FK
+        text token_hash UK
     }
     PROFILES {
-        uuid id PK "same as auth.users.id [PR3]"
+        uuid id PK "[PR3]"
         citext username UK
         text display_name
         bool is_traveler
@@ -239,9 +246,17 @@ Moved to PR26: `GET /users/{username}` (first used by the profile screens). Test
 `src/lib/supabase/server.ts`, `src/proxy.ts` (refresh session), `src/lib/validation/auth.ts`, `src/lib/auth/actions.ts` (log in, log out), `src/app/(auth)/login/page.tsx`, `src/app/(auth)/login/login-form.tsx`, `src/lib/api/client.ts` (typed client with token), `src/app/page.tsx` and `src/components/home/welcome.tsx` (username from `/me`), `src/lib/constants.ts`, `package.json` (libraries, `gen:api`), `backend/scripts/export_openapi.py`, `docs/SUPABASE_SETUP.md`, `CLAUDE.md`, this roadmap. Unstyled until PR7. Tests paused.
 **Demo:** log in with a user from the Supabase dashboard, see the username on the home page, log out.
 
-### PR6: Sign up, password reset, protected pages (~13 files)
-`src/app/(auth)/signup/page.tsx` + form, `src/app/auth/callback/route.ts`, `src/app/(auth)/forgot-password/page.tsx` + form, `src/app/(auth)/reset-password/page.tsx` + form, `src/lib/validation/auth.ts`, `src/lib/auth/actions.ts`, `src/lib/auth/safe-next.ts`, `src/proxy.ts` (redirect logged-out users), `src/lib/api/client.ts` (one refresh and retry on 401), `frontend/README.md`. **The sign-in feature is complete here.** Tests paused.
-**Demo:** sign up, confirm email, log in; open a protected page logged out and get sent to login; reset password flow.
+### PR6, PR6b, PR6c: Our own sign-in
+Reviewer decision (2026-11-04): stop using Supabase Auth. Split in three at the Owner's request (2026-11-05), merged in this order. They replace the first PR6 (`sign_in_complete`). Sign-in on `main` does not work between merging PR6 and PR6b. Tests paused.
+
+**PR6: Backend auth (15 files).** `supabase/migrations/20261105120000_own_auth.sql`, `app/api/v1/auth.py`, `app/services/auth.py`, `app/repos/auth.py`, `app/schemas/auth.py`, `app/models/auth.py`, `app/core/security.py` (Argon2id, JWT), config, constants, errors.
+**Demo:** call `/api/v1/auth/signup`, `/login`, `/refresh`, `/logout` and `/reset-password`.
+
+**PR6b: Log in and log out (15 files).** `src/lib/auth/session.ts`, `src/lib/auth/actions.ts`, `src/lib/api/client.ts`, `src/proxy.ts` (renews the token), login and home pages. Removes the Supabase libraries and `src/lib/supabase/server.ts`.
+**Demo:** log in with an account made through the API; see the username; log out.
+
+**PR6c: Sign up, forgot password, protected pages (17 files, over the limit with the Owner's OK on 2026-11-09).** Sign up and forgot password pages, `src/components/auth/auth-form.tsx` (replaces `login-form.tsx`), `src/proxy.ts` (redirects), `src/lib/types.ts` (shared types), docs. Email confirmation is dropped for now.
+**Demo:** sign up and land on the home page; forgot password with the date of birth; open `/` logged out and get sent to login.
 
 ### PR7: Design basics (~14 files)
 Tailwind install (`postcss.config.mjs`, moved here from setup), `src/app/globals.css` (paper and ink tokens, bottle green accent), fonts in `src/app/layout.tsx`, `src/lib/theme.ts`, `src/components/theme/theme-toggle.tsx`, `src/components/theme/actions.ts`, `src/components/ui/button.tsx`, `src/components/ui/input.tsx`, `src/components/ui/field.tsx` (label, hint, error), `src/lib/utils.ts`, `components.json`, the auth forms restyled. Tests paused.
@@ -330,6 +345,9 @@ Tailwind install (`postcss.config.mjs`, moved here from setup), `src/app/globals
 ### PR28: Admin console (~14 files)
 `src/app/(admin)/admin/layout.tsx` (server-side guard), `page.tsx` (figures), `verifications/page.tsx`, `disputes/page.tsx`, `disputes/[id]/page.tsx`, `users/page.tsx`, `src/components/admin/figures-row.tsx`, `verification-queue.tsx`, `document-viewer.tsx`, `resolve-form.tsx`, `src/lib/api/admin.ts`, `tests/e2e/admin-guard.spec.ts`, `tests/e2e/admin-verifications.spec.ts`, `tests/e2e/admin-disputes.spec.ts`
 **Demo:** approve an ID and resolve a dispute.
+
+### PR28b: OTP (~10 files)
+One-time codes replace the date-of-birth check for forgot password and confirm that a user owns their email or phone. **Must ship before real users.** Delivery service not chosen yet.
 
 ### PR29: Backend hardening and deploy (~10 files)
 `migrations/<ts>_backend_role.sql` (limited `cargoshare_backend` user: data access only, bypasses RLS; `GRANT ... ON ALL TABLES` + default privileges for future tables; switch `DATABASE_URL`), `load/search.js` (k6), `docs/SECURITY.md`, `docs/API.md`, `docs/DEPLOY_BACKEND.md`, `docs/RUNBOOK.md`, `app/core/config.py` (production settings), `app/main.py` (docs off in production), `supabase/seed.sql`, `tests/integration/test_production_settings.py`, `.github/workflows/backend.yml`

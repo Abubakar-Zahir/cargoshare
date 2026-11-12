@@ -114,7 +114,7 @@ Escrow, real payment gateways, wallet balances, real-time chat, email notificati
 | DB | Supabase Postgres |
 | DB access | SQLAlchemy 2.0 async + asyncpg |
 | Schema & migrations | **Supabase CLI SQL migrations** in `supabase/migrations/` (single source of truth for tables, constraints, RLS, triggers, storage policies, pg_cron) |
-| Auth | Supabase Auth issues JWTs; FastAPI verifies them |
+| Auth | FastAPI hashes passwords with Argon2id and issues its own JWTs (HS256) |
 | File storage | Supabase Storage, private buckets, signed URLs issued by the backend |
 | Scheduled jobs | `pg_cron` inside Postgres |
 | Package manager | `uv` |
@@ -129,9 +129,9 @@ Escrow, real payment gateways, wallet balances, real-time chat, email notificati
 
 ### 2.2 Request flow
 ```
-Browser (Next.js) ── Supabase Auth (login/signup) ──> gets access token (JWT)
+Next.js server ── /api/v1/auth (signup, login) ──> FastAPI ──> access token (JWT) + refresh token
 Browser / Next.js server ── Authorization: Bearer <JWT> ──> FastAPI /api/v1
-FastAPI ── verify JWT (JWKS) ── service layer ── SQLAlchemy ──> Supabase Postgres
+FastAPI ── verify JWT (JWT_SECRET) ── service layer ── SQLAlchemy ──> Supabase Postgres
 FastAPI ── Supabase Storage (service key, server only) ──> signed upload/download URLs
 ```
 
@@ -167,9 +167,9 @@ cargoshare/
 
 ### 2.5 Key architecture decisions (write each as an ADR in `docs/ADR/` during B0)
 1. **Backend owns all writes.** Postgres RLS is enabled on every public table with **no policies for `anon` or `authenticated`**, so the Supabase client in the browser cannot read or write app tables even if misused. FastAPI connects with a dedicated DB role that bypasses RLS.
-2. **Supabase Auth for identity only.** Users, passwords, email confirmation, password reset handled by Supabase. App data lives in `public.profiles` keyed by `auth.users.id`.
-3. **Admin role lives in `app_metadata`**, never `user_metadata` (users can edit `user_metadata` themselves). The backend also checks `profiles.is_admin`, and both must agree.
-4. **JWT verification via JWKS** (asymmetric signing keys). Cache keys with TTL, refetch on unknown `kid`. Fallback to HS256 legacy secret only if the project uses it, behind a config flag.
+2. **Our own auth (reviewer decision, 2026-11-04; replaces Supabase Auth).** The backend stores Argon2id password hashes in `public.credentials` and refresh token hashes in `public.refresh_tokens`. No email confirmation for now. Forgot password checks the date of birth until OTP replaces it (PR28b). App data lives in `public.profiles`. The database stays on Supabase.
+3. **Admin role lives in `profiles.is_admin`.** Signup cannot set it, and it can only be changed directly in the database or by an admin.
+4. **JWT signed with HS256** using `JWT_SECRET`, which only the backend holds. Access tokens last 15 minutes. Refresh tokens are random, last 30 days, and can be cancelled in the database.
 5. **Money** is `numeric(12,2)` in PKR, handled as `Decimal` in Python. Never float. **Weight** is `numeric(6,2)` kg.
 6. **IDs** are UUIDv4 (`gen_random_uuid()`), never sequential ints in URLs.
 7. **Timestamps** are `timestamptz`, stored UTC, returned ISO 8601 with offset.
@@ -200,7 +200,7 @@ file_kind:            avatar | id_document | item_photo | handoff_photo | delive
 
 ### 3.2 Tables
 **profiles**
-- `id uuid pk references auth.users(id) on delete cascade`
+- `id uuid pk default gen_random_uuid()`
 - `username citext unique not null` (3 to 30 chars, `^[a-z0-9_]+$`)
 - `display_name text` (≤ 60)
 - `avatar_path text null` (storage path, never a public URL)
@@ -209,7 +209,7 @@ file_kind:            avatar | id_document | item_photo | handoff_photo | delive
 - `is_verified bool not null default false` (only set by admin approval flow)
 - `is_admin bool not null default false`
 - `is_active bool not null default true`
-- Created automatically by a trigger on `auth.users` insert, username taken from signup metadata with a safe fallback.
+- Created by `POST /auth/signup` together with the user's `credentials` row. A taken username or email is refused with 409.
 
 **id_verifications**
 - `id uuid pk`, `user_id fk profiles`, `document_path text not null`, `status verification_status default 'pending'`, `reviewed_by fk profiles null`, `reviewed_at timestamptz null`, `rejection_reason text null`
@@ -372,7 +372,7 @@ Any other transition returns `409 INVALID_TRANSITION`. Every transition writes `
 
 ## 6. Security Requirements (checked in every PR)
 
-1. **JWT**: verify signature (JWKS), `exp`, `iat` skew ≤ 60s, `iss` = project auth URL, `aud` = `authenticated`. Reject `role` other than `authenticated`. Reject tokens for users whose profile `is_active = false` (deactivation also bans the user via Supabase Admin API).
+1. **JWT**: verify signature (`JWT_SECRET`), `exp`, `iat` skew ≤ 60s, `iss` = `cargoshare`, `aud` = `cargoshare-api`. Reject tokens for users whose profile `is_active = false`. **Wrong tries**: 5 wrong passwords or dates of birth block that account's login and reset for 15 minutes.
 2. **Authorization** in services, not routers. One helper per resource (`ensure_trip_owner`, `ensure_shipment_party`, `ensure_admin`). Tests for each.
 3. **Secrets** only from env via pydantic-settings. `SUPABASE_SERVICE_ROLE_KEY` exists only on the backend. `.env.example` has placeholders only.
 4. **CORS**: explicit allowlist from env. No `*` with credentials.
@@ -392,7 +392,7 @@ Any other transition returns `409 INVALID_TRANSITION`. Every transition writes `
 
 - **Unit**: state machine (every allowed and every forbidden transition), price calculation, keyword filter, pagination cursor encode/decode.
 - **Integration**: real Supabase Postgres on the `cargoshare-test` project. Each test runs in a transaction that is rolled back; concurrency tests (which need real commits) clean up their own rows. Tests refuse to run if the configured project ref is not the test project.
-- **Auth fixtures**: test users created through the Supabase Admin API on the test project (pre-confirmed), real tokens obtained by signing in; plus a local test key with a JWKS override to mint invalid variants (expired, wrong aud, wrong iss, bad signature, deactivated user).
+- **Auth fixtures**: test users created through `POST /auth/signup` on the test project, real tokens obtained by signing in; plus a test secret to mint invalid variants (expired, wrong aud, wrong iss, bad signature, deactivated user).
 - **Security suite** (`tests/security/`): IDOR on every resource, role bypass attempts, admin endpoints as normal user, mass assignment (sending `is_admin`, `is_verified`, `status`, `price` in bodies must be ignored or rejected).
 - **Concurrency suite**: 20 parallel accepts racing for the last kg, exactly the right number succeed and capacity never goes negative. 10 parallel payments with the same idempotency key produce exactly one row.
 - **DB tests**: UPDATE/DELETE on `payments` and `audit_log` raise. Check constraints reject bad data.
@@ -409,7 +409,7 @@ Each phase lists goal, tasks, acceptance criteria (AC), and a suggested commit p
 Tasks:
 - Monorepo skeleton (Section 2.4), `uv` project, pinned deps, `docs/VERSIONS.md`.
 - ruff, mypy strict, pytest config, pre-commit (ruff, mypy, gitleaks, end-of-file, trailing whitespace).
-- `npx supabase init`, link to `cargoshare-dev`, document how to link `cargoshare-test`. Auth settings checked in the dashboard and recorded in `docs/SUPABASE_SETUP.md` (email confirmation on, minimum password length 10, JWT expiry 1h, refresh token rotation on, asymmetric JWT signing keys).
+- `npx supabase init`, link to `cargoshare-dev`, document how to link `cargoshare-test`.
 - Dockerfile (multi-stage, non-root, healthcheck) for deployment. Built in CI only; the Owner does not need Docker locally.
 - GitHub Actions: lint, types, tests against `cargoshare-test` (credentials from GitHub Secrets), bandit, pip-audit, gitleaks, docker build.
 - ADRs from Section 2.5. PR template. `docs/PROGRESS.md`, `docs/SECURITY.md` stubs.
@@ -428,26 +428,26 @@ Tasks:
 - `core/errors.py` domain error classes + exception handlers producing the envelope.
 - `core/logging.py` structlog JSON, request ID middleware.
 - Security headers middleware, CORS, rate limiter wiring.
-- `core/security.py` JWKS fetch + cache, `get_current_user` dependency returning a typed `CurrentUser`.
+- `core/security.py` password hashing and our JWTs, `get_current_user` dependency returning a typed `CurrentUser`.
 - `/health` (liveness) and `/health/ready` (DB ping).
 AC:
 - All JWT failure modes from Section 6.1 return 401 with the envelope (tests).
 - Unhandled exception returns 500 envelope without stack trace (test).
 - Every response has `X-Request-ID` and the security headers (test).
 - App refuses to boot with a missing required env var (test).
-Commits: `feat(core): config, db session, logging and error envelope` / `feat(auth): supabase jwt verification via jwks` / `test(core): security headers, errors and auth failure modes`
+Commits: `feat(core): config, db session, logging and error envelope` / `feat(auth): our own jwt verification` / `test(core): security headers, errors and auth failure modes`
 
 ### Phase B2: Schema, Profiles and Roles
 **Goal:** full database schema from Section 3 plus profile endpoints.
 Tasks:
-- Migrations: enums, all tables, constraints, indexes, `updated_at` triggers, append-only triggers, profile-on-signup trigger, RLS enabled with no anon/authenticated policies, `user_rating_summary` view, restricted keywords seed.
+- Migrations: enums, all tables, constraints, indexes, `updated_at` triggers, append-only triggers, RLS enabled with no anon/authenticated policies, `user_rating_summary` view, restricted keywords seed.
 - SQLAlchemy models mirroring tables. A test asserts models and DB columns match.
 - `GET/PATCH /me` (display_name, roles; enforce at least one role, matching DB check), `GET /users/{username}` (public profile + rating summary).
 AC:
 - All migrations apply cleanly from zero on `cargoshare-test` (`npx supabase db reset --linked`), and with `db push` on `cargoshare-dev`.
 - Data API (PostgREST) is disabled on both projects, so anon and authenticated keys have no REST access to tables. As a second layer, a SQL test asserts RLS is enabled on every public table and that `anon` and `authenticated` hold no table privileges in `public`.
 - PATCH /me ignores or rejects `is_admin`, `is_verified`, `is_active` (mass assignment test).
-- Signup through Supabase Auth creates a profile row automatically.
+- `POST /auth/signup` creates the profile and credentials rows together.
 Commits: `feat(db): core schema, constraints, rls and triggers` / `feat(profiles): me and public profile endpoints` / `test(profiles): rls lockdown and mass assignment`
 
 ### Phase B3: Storage, Avatars and ID Verification
@@ -505,7 +505,7 @@ AC:
 Commits: `feat(ratings): role-specific ratings` / `feat(dashboard): aggregated dashboard endpoint` / `test(ratings): eligibility rules and dashboard query budget`
 
 ### Phase B9: Admin
-Tasks: admin dependency (app_metadata role AND profiles.is_admin), verification queue with bulk approve/reject, document signed URL, dispute management with resolution flow (Section 4.5), user listing/search/deactivate (also bans in Supabase Auth), stats endpoint (active trips, total payments count and sum, open disputes, pending verifications, shipments by status, signups last 30 days).
+Tasks: admin dependency (profiles.is_admin), verification queue with bulk approve/reject, document signed URL, dispute management with resolution flow (Section 4.5), user listing/search/deactivate, stats endpoint (active trips, total payments count and sum, open disputes, pending verifications, shipments by status, signups last 30 days).
 AC:
 - Every admin endpoint returns 403 for a normal user and for a user with only one of the two admin flags.
 - Deactivated user's existing token is rejected on the next request.
