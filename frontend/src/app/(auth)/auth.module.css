@@ -1,113 +1,32 @@
-/* Keep the auth screens centered without affecting other routes. */
-:global(body):has(.page) {
-  margin: 0;
-}
 .page {
-  box-sizing: border-box;
-  min-height: 100svh;
   display: grid;
+  flex: 1;
   place-items: center;
   padding: 32px 16px;
-  background: #f4f6f3;
-  color: #20352b;
-  font-family: Arial, Helvetica, sans-serif;
 }
+
 .card {
   box-sizing: border-box;
   width: 100%;
   max-width: 440px;
   padding: clamp(24px, 6vw, 40px);
-  border: 1px solid #dce4dc;
+  border: 1px solid var(--line);
   border-radius: 16px;
-  background: white;
-  box-shadow: 0 12px 36px rgb(32 53 43 / 7%);
+  background: var(--surface);
+  box-shadow: 0 12px 36px rgb(0 0 0 / 5%);
 }
+
 .card h1 {
-  margin: 0 0 28px;
   text-align: center;
-  font-size: 28px;
+  font-size: clamp(1.75rem, 5vw, 2.25rem);
 }
-.card form {
-  display: grid;
-  gap: 18px;
-}
-.card form > div {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-.card label {
-  font-size: 14px;
-  font-weight: 600;
-}
-.card input:not([type="checkbox"]):not([type="hidden"]) {
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
-  padding: 11px 12px;
-  border: 1px solid #aab8ae;
-  border-radius: 7px;
-  background: white;
-  color: inherit;
-  font: inherit;
-}
-.card form > div:has(input[type="checkbox"]) {
-  flex-direction: row-reverse;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 10px;
-}
-.card input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  margin: 0;
-  accent-color: #246344;
-}
-.card button {
-  min-height: 44px;
-  padding: 11px 16px;
-  border: 0;
-  border-radius: 7px;
-  background: #246344;
-  color: white;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-.card button:hover {
-  background: #194d33;
-}
-.card button:disabled {
-  opacity: 0.65;
-  cursor: wait;
-}
-.card :is(input, button, a):focus-visible {
-  outline: 3px solid #43885f;
-  outline-offset: 3px;
-}
-.card p {
-  margin: 18px 0 0;
-  font-size: 14px;
-  line-height: 1.5;
-}
+
 .card main > p {
   text-align: center;
 }
-.card form div p {
-  margin: 0;
-  color: #526359;
-  font-size: 13px;
-}
-.card a {
-  color: #246344;
-  text-underline-offset: 3px;
-}
-.card [role="alert"] {
-  margin: 0;
-  color: #a12626;
-}
+
 .card [role="status"] {
   padding: 12px;
-  border-radius: 7px;
-  background: #edf6ef;
+  border-radius: 10px;
+  background: var(--accent-soft);
 }

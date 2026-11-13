@@ -2,6 +2,10 @@
 
 import { useActionState } from "react";
 
+import Button from "@/components/ui/button";
+import Field from "@/components/ui/field";
+import Input from "@/components/ui/input";
+
 import type { AuthField, AuthFormState } from "@/lib/types";
 
 type AuthFormProps = Readonly<{
@@ -21,37 +25,45 @@ const AuthForm = ({ action, fields, submitLabel, hiddenValues = {} }: AuthFormPr
   }
 
   return (
-    <form action={formAction}>
+    <form action={formAction} className="flex flex-col gap-5" aria-busy={isPending}>
       {Object.entries(hiddenValues).map(([name, value]) => (
         <input key={name} type="hidden" name={name} value={value} />
       ))}
       {fields.map(({ name, label, type, autoComplete, hint, defaultChecked }) => {
-        const hintId = `${name}-hint`;
         const previous = state.values?.[name];
-        const startingValue =
-          type === "checkbox"
-            ? { defaultChecked: state.values ? previous !== undefined : defaultChecked }
-            : { defaultValue: previous ?? "", required: true };
-
+        if (type === "checkbox") {
+          return (
+            <div key={name} className="flex min-h-11 items-center gap-3 pointer-coarse:min-h-12">
+              <input
+                id={name}
+                name={name}
+                type="checkbox"
+                className="size-5 shrink-0 accent-accent"
+                defaultChecked={state.values ? previous !== undefined : defaultChecked}
+              />
+              <label htmlFor={name}>{label}</label>
+            </div>
+          );
+        }
+        const hintId = `${name}-hint`;
         return (
-          <div key={name}>
-            <label htmlFor={name}>{label}</label>
-            <input
+          <Field key={name} id={name} label={label} hint={hint} hintId={hintId}>
+            <Input
               id={name}
               name={name}
               type={type}
               autoComplete={autoComplete}
               aria-describedby={hint ? hintId : undefined}
-              {...startingValue}
+              defaultValue={previous ?? ""}
+              required
             />
-            {hint && <p id={hintId}>{hint}</p>}
-          </div>
+          </Field>
         );
       })}
       {state.error && <p role="alert">{state.error}</p>}
-      <button type="submit" disabled={isPending}>
+      <Button type="submit" disabled={isPending}>
         {submitLabel}
-      </button>
+      </Button>
     </form>
   );
 };
