@@ -24,6 +24,16 @@ export const REFRESH_TOKEN_COOKIE = "refresh_token";
 
 export const NEXT_PARAM = "next";
 
+export const THEME_COOKIE = "theme";
+export const THEME_FIELD = "theme";
+export const LIGHT_THEME = "light";
+export const DARK_THEME = "dark";
+export const THEME_COOKIE_MAX_AGE_SECONDS = 31_536_000;
+export const LIGHT_MODE_LABEL = "Light mode";
+export const DARK_MODE_LABEL = "Dark mode";
+export const LIGHT_THEME_COLOR = "#f9f5ed";
+export const DARK_THEME_COLOR = "#0f1319";
+
 export const SIGNED_IN_MESSAGE = "Signed in as";
 export const PROFILE_UNAVAILABLE_MESSAGE = "We could not load your profile. Please try again.";
 
