@@ -1,15 +1,16 @@
 # CargoShare Progress
 
-> Maintained by Claude Code. Rules in `CLAUDE.md` Section 8. Order of work in `docs/ROADMAP.md`.
+> Maintained by the project coding assistant. Rules in `CLAUDE.md` Section 8. Order of work in `docs/ROADMAP.md`.
 > Never delete history. Close items by marking them resolved with a date.
 
 ## Current Step
 | Field | Value |
 |---|---|
-| Step | PR6: Own sign-in with passwords and JWT |
-| Status | IN PROGRESS: PR6a merged (#12), PR6b merged (#13); PR6c (`own_auth_signup`) committed locally, not pushed |
-| Branch | `own_auth_signup` (PR6c), 3 commits on top of `main`. `own_auth_backend` and `own_auth_login` are merged. `sign_in_complete` is replaced and no longer on GitHub |
-| Next step | Owner pushes PR6c (base `main`). Then PR7 (`design_basics`) is rebuilt on the new auth. Refresh token rotation and OTP stay in "Do before production" |
+| Step | PR8: App shell and Dashboard v1 |
+| Status | AWAITING REVIEW: PR8 implemented and verified; Owner explicitly deferred PR8 teaching |
+| Branch | `app_shell_dashboard`, based on PR7 commit `3f2a2da` on `design_basics_v2` |
+| Next step | Owner visual review and publishing; PR8 teaching deferred, PR7 understanding questions pending |
+
 
 ## Steps
 > Renumbered 2026-10-16: backend setup is PR1, frontend setup is PR2, old PR1 to PR28 are now PR3 to PR30. History below keeps the old numbers.
@@ -23,8 +24,8 @@
 | PR4 | Backend auth and /me | 21 Oct | PR OPEN (pushed; opening not confirmed) | branch `sign_in_backend` | |
 | PR5 | Log in and log out | 22 Oct | PR OPEN (pushed; opening not confirmed) | branch `sign_in_frontend` | |
 | PR6 | Own sign-in, sign up, forgot password, protected pages | 23 Oct | IN PROGRESS | branch `sign_in_complete` | |
-| PR7 | Design basics | 26 Oct | NOT STARTED | | |
-| PR8 | App shell and Dashboard v1 | 27 Oct | NOT STARTED | | |
+| PR7 | Design basics | 26 Oct | IN PROGRESS | branch `design_basics_v2` | |
+| PR8 | App shell and Dashboard v1 | 27 Oct | AWAITING REVIEW (teaching deferred by Owner) | branch `app_shell_dashboard` | |
 | PR9 | Landing and public pages | 28 Oct | NOT STARTED | | |
 | PR10 | Trips API | 29 Oct | NOT STARTED | | |
 | PR11 | Trip search API | 30 Oct | NOT STARTED | | |
@@ -58,6 +59,27 @@
 - Next:
 - Notes:
 -->
+
+### 2026-11-13 | Separate local PR7 and PR8 commits
+- Owner explicitly requested commits. Committed PR7 as `3f2a2da` on `design_basics_v2`; commit hooks passed. Moved `app_shell_dashboard` forward to that commit and restored only the remaining PR8 work for its separate commit. Backup stashes retained; no push performed.
+- PR8 commit includes its 15 counted files plus progress. Generated `frontend/AGENTS.md` and the unrelated untracked terminal-output file are excluded. Earlier uncommitted status entries below describe the state before this request.
+
+### 2026-11-13 | PR8 app shell and Dashboard v1
+- Owner requested PR7 teaching followed by full PR8 implementation; PR8 teaching explicitly deferred. Provided PR7 walkthrough in chat; understanding questions remain pending.
+- Created local `app_shell_dashboard` from the active `own_auth_signup` checkout, preserving uncommitted PR7 work. No commits, pushes or PR creation.
+- Scope: 15 counted files including roadmap. Protected dashboard, real profile greeting/checklist, responsive role-aware navigation, account/logout menu, keyboard skip link and root redirect. Profile reads are deduplicated within a server render. Future features stay unavailable without broken links or invented counts. Tests remain paused.
+- Navigation width follows breakpoints with saved collapse/expand controls; account menu restores the device theme. First-trip completion awaits the later feature APIs.
+- Verification: lint, TypeScript, formatting and full pre-commit gate pass. Webpack production build passes. Temporary local profile fixture browser checks cover 40 combinations (320/375/768/1280px; traveler, sender, dual role, verified, long names; JavaScript on/off), plus root redirect, invalid/missing token rejection, logout/cookie clearing, theme persistence/device reset, saved sidebar width and skip-link focus. No database accounts created and no test files added. Browser fixtures are not proof of live backend integration.
+- PR7 and PR8 both remain uncommitted in this checkout; PR8 adds/changes 15 counted files, with the roadmap shared between steps. Owner must separate the two PR commits before publishing.
+
+### 2026-11-12 | PR7 adapted to PR6c
+- Owner requested completion. Reviewed the existing 14 counted files (plus lockfile and progress); design integration is implemented. Frontend lint, TypeScript and formatting pass; backend ruff, formatting, mypy and bandit pass. Production build passes with `pnpm exec next build --webpack`; default Turbopack fails because its internal port binding is denied even after an escalated retry.
+- Browser verification against the production build: login, signup and forgot-password return 200 without horizontal overflow at 375px and 1280px, with JavaScript enabled and disabled. Light/dark toggle and saved theme after reload pass in both modes; no browser page errors. No test files added (tests remain paused). Teaching and Owner review remain pending; no push or PR creation performed.
+- Full repository pre-commit gate passes with `UV_NO_SYNC=true UV_CACHE_DIR=/tmp/cargoshare-uv-cache backend/.venv/bin/pre-commit run --all-files` (uses installed tools and a writable cache path).
+- Resolved Owner's localhost build error (`Cannot find module '@tailwindcss/postcss'`): dependency already installed; restarted stale `pnpm dev` process. Turbopack dev server now serves `/login?next=%2F` with HTTP 200 and the login markup.
+- Owner authorized rebuilding PR7 and preserving PR6c changes. New branch `design_basics_v2` from `f01ba5a`; old design branch preserved. Plan: 14 counted files plus lockfile and progress. Owner clarified that file counts must reflect necessary work; the auth layout is reused unchanged. Reuse only design code; keep our backend auth, shared types, centered auth cards and validation. Defer unused shadcn config/helpers and old password-strength widget.
+- PR6c now has 4 commits, including styling. Local tracking shows `own_auth_signup` at the same commit as `origin/own_auth_signup`; merge not verified. Earlier Codex push failed for missing credentials; Owner subsequently pushed.
+- Checks and teaching pending.
 
 ### 2026-11-11 | PR6c auth styling
 - Owner requested light styling and an extra local commit on PR6c, authorizing a fourth commit. Added a shared auth layout and scoped CSS for centered login, signup and forgot-password cards, responsive spacing, inputs, buttons and keyboard focus states. Replaced the uncommitted Tailwind wrappers (Tailwind is not installed).
