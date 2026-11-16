@@ -16,8 +16,8 @@
     "start": "next start",
     "lint": "next typegen && eslint .",
     "typecheck": "next typegen && tsc --noEmit",
-    "format": "prettier --write src next.config.ts eslint.config.mjs tsconfig.json package.json pnpm-workspace.yaml README.md",
-    "format:check": "prettier --check src next.config.ts eslint.config.mjs tsconfig.json package.json pnpm-workspace.yaml README.md",
+    "format": "prettier --write src next.config.ts eslint.config.mjs postcss.config.mjs tsconfig.json package.json pnpm-workspace.yaml README.md",
+    "format:check": "prettier --check src next.config.ts eslint.config.mjs postcss.config.mjs tsconfig.json package.json pnpm-workspace.yaml README.md",
     "gen:api": "openapi-typescript ../docs/openapi.json -o src/lib/api/schema.d.ts && prettier --write src/lib/api/schema.d.ts"
   },
   "dependencies": {
@@ -38,9 +38,16 @@
     "openapi-typescript": "7.13.0",
     "prettier": "3.9.10",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.71.2"
+    "typescript-eslint": "8.71.2",
+    "tailwindcss": "4.3.3",
+    "@tailwindcss/postcss": "4.3.3",
+    "prettier-plugin-tailwindcss": "0.8.1"
   },
   "prettier": {
-    "printWidth": 100
+    "printWidth": 100,
+    "plugins": [
+      "prettier-plugin-tailwindcss"
+    ],
+    "tailwindStylesheet": "./src/app/globals.css"
   }
 }

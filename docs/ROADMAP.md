@@ -258,9 +258,9 @@ Reviewer decision (2026-11-04): stop using Supabase Auth. Split in three at the 
 **PR6c: Sign up, forgot password, protected pages (17 files, over the limit with the Owner's OK on 2026-11-09).** Sign up and forgot password pages, `src/components/auth/auth-form.tsx` (replaces `login-form.tsx`), `src/proxy.ts` (redirects), `src/lib/types.ts` (shared types), docs. Email confirmation is dropped for now.
 **Demo:** sign up and land on the home page; forgot password with the date of birth; open `/` logged out and get sent to login.
 
-### PR7: Design basics (~14 files)
-Tailwind install (`postcss.config.mjs`, moved here from setup), `src/app/globals.css` (paper and ink tokens, bottle green accent), fonts in `src/app/layout.tsx`, `src/lib/theme.ts`, `src/components/theme/theme-toggle.tsx`, `src/components/theme/actions.ts`, `src/components/ui/button.tsx`, `src/components/ui/input.tsx`, `src/components/ui/field.tsx` (label, hint, error), `src/lib/utils.ts`, `components.json`, the auth forms restyled. Tests paused.
-**Demo:** the login and signup pages in light and dark.
+### PR7: Design basics (14 counted files)
+Rebuilt on PR6c as `design_basics_v2`. Tailwind setup (`package.json`, `postcss.config.mjs`), `src/app/globals.css` (paper and ink tokens, bottle green accent), fonts and theme header in `src/app/layout.tsx`, `src/lib/theme.ts`, `src/components/theme/theme-toggle.tsx`, `src/components/theme/actions.ts`, `src/components/ui/button.tsx`, `input.tsx`, `field.tsx`, `src/lib/constants.ts`, `src/components/auth/auth-form.tsx`, and `src/app/(auth)/auth.module.css`; this roadmap. The existing centered auth layout is reused unchanged. Shared types and our backend auth from PR6c are preserved. `utils.ts` and `components.json` are deferred until needed; no shadcn generator is used. Password-strength widget from the old branch is deferred. Tests paused.
+**Demo:** login, signup and forgot password centered on phone and desktop in light and dark; saved theme survives reload.
 
 ### PR8: App shell and Dashboard v1 (~14 files)
 `src/app/(app)/layout.tsx` (loads `/me`), `src/app/(app)/dashboard/page.tsx` (greeting, Get started checklist, "Nothing needs you right now"), `src/components/shell/app-shell.tsx`, `sidebar.tsx`, `bottom-nav.tsx`, `nav-items.ts`, `nav-link.tsx`, `user-menu.tsx`, `skip-link.tsx`, `src/components/domain/get-started.tsx`, `src/components/feedback/empty-state.tsx`, `tests/unit/nav.test.ts`, `tests/e2e/shell.spec.ts`, `tests/e2e/dashboard.spec.ts`
