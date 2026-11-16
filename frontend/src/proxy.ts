@@ -14,7 +14,8 @@ import {
   LOGIN_PATH,
   NEXT_PARAM,
   NONCE_HEADER,
-  PUBLIC_PATHS,
+  AUTH_PATHS,
+  PROTECTED_PATH_PREFIXES,
   REFRESH_TOKEN_COOKIE,
 } from "@/lib/constants";
 
@@ -72,13 +73,15 @@ export const proxy = async (request: NextRequest): Promise<NextResponse> => {
   };
 
   const { pathname, search } = request.nextUrl;
-  const isPublicPath = PUBLIC_PATHS.includes(pathname);
-  if (!isLoggedIn && !isPublicPath) {
+  const isProtected = PROTECTED_PATH_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+  if (!isLoggedIn && isProtected) {
     const loginUrl = new URL(LOGIN_PATH, request.url);
     loginUrl.searchParams.set(NEXT_PARAM, `${pathname}${search}`);
     return redirectTo(loginUrl);
   }
-  if (isLoggedIn && isPublicPath) {
+  if (isLoggedIn && AUTH_PATHS.includes(pathname)) {
     return redirectTo(new URL(HOME_PATH, request.url));
   }
 
@@ -92,7 +95,8 @@ export const proxy = async (request: NextRequest): Promise<NextResponse> => {
 export const config = {
   matcher: [
     {
-      source: "/((?!api|_next/static|_next/image|favicon.ico).*)",
+      source:
+        "/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|opengraph-image).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },

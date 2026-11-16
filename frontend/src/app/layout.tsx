@@ -2,19 +2,15 @@ import "@/app/globals.css";
 
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Geist } from "next/font/google";
-import Link from "next/link";
 import type { ReactNode } from "react";
 
-import ThemeToggle from "@/components/theme/theme-toggle";
+import SiteHeader from "@/components/marketing/site-header";
+import { env } from "@/env";
 import {
   APP_DESCRIPTION,
   APP_NAME,
-  DARK_MODE_LABEL,
   DARK_THEME,
   DARK_THEME_COLOR,
-  HOME_PATH,
-  LIGHT_MODE_LABEL,
-  LIGHT_THEME,
   LIGHT_THEME_COLOR,
 } from "@/lib/constants";
 import { getSavedTheme } from "@/lib/theme";
@@ -33,6 +29,7 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
   title: APP_NAME,
   description: APP_DESCRIPTION,
 };
@@ -60,22 +57,7 @@ const RootLayout = async ({ children }: Readonly<{ children: ReactNode }>) => {
       className={`${fraunces.variable} ${geistSans.variable}`}
     >
       <body className="flex min-h-svh flex-col font-sans">
-        <header className="border-b border-line">
-          <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-4 py-3">
-            <Link
-              href={HOME_PATH}
-              className="font-display text-xl font-semibold text-ink no-underline"
-            >
-              {APP_NAME}
-            </Link>
-            <ThemeToggle
-              lightLabel={LIGHT_MODE_LABEL}
-              darkLabel={DARK_MODE_LABEL}
-              lightTheme={LIGHT_THEME}
-              darkTheme={DARK_THEME}
-            />
-          </div>
-        </header>
+        <SiteHeader />
         {children}
       </body>
     </html>

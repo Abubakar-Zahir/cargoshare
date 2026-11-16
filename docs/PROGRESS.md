@@ -6,10 +6,11 @@
 ## Current Step
 | Field | Value |
 |---|---|
-| Step | PR8: App shell and Dashboard v1 |
-| Status | AWAITING REVIEW: PR8 implemented and verified; Owner explicitly deferred PR8 teaching |
-| Branch | `app_shell_dashboard`, based on PR7 commit `3f2a2da` on `design_basics_v2` |
-| Next step | Owner visual review and publishing; PR8 teaching deferred, PR7 understanding questions pending |
+| Step | PR9 landing/public pages, then PR10 Trips API |
+| Status | IN PROGRESS: Owner requested both steps on 2026-11-16 |
+| Branch | `landing_public_pages`, based on PR8 `e5dd9d8`; PR10 will have its own branch |
+| Next step | Verify and commit PR9, then implement and verify PR10; no pushing or database migration application |
+
 
 
 ## Steps
@@ -59,6 +60,11 @@
 - Next:
 - Notes:
 -->
+
+### 2026-11-16 | PR9 and PR10 authorized
+- Owner requested the next two PRs. Existing PR7/PR8 commits preserved; unrelated untracked files left untouched. PR9 branch `landing_public_pages` from PR8. Local implementation/commits only; teaching can follow the requested build work.
+- PR9: 15 counted files. Public landing, licensed local city photos with visible attribution, shared header/footer, 404/retry error page and search/share metadata. Auth redirects target the dashboard while the home stays public. Root layout reused; credits documented in footer/roadmap rather than extra route group and credit file.
+- PR9 checks pass: lint, TypeScript, formatting, full pre-commit and webpack production build. Production-browser checks pass for 16 viewport/theme/JavaScript combinations (320/375/768/1280px), all photos, theme persistence without JS, public 404, protected redirect, robots/sitemap/Open Graph PNG. Axe WCAG A/AA checks report no violations. Lighthouse score not yet measured.
 
 ### 2026-11-13 | Separate local PR7 and PR8 commits
 - Owner explicitly requested commits. Committed PR7 as `3f2a2da` on `design_basics_v2`; commit hooks passed. Moved `app_shell_dashboard` forward to that commit and restored only the remaining PR8 work for its separate commit. Backup stashes retained; no push performed.

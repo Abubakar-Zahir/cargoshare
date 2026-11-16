@@ -3,7 +3,7 @@ import type { AuthField } from "@/lib/types";
 export const APP_NAME = "CargoShare";
 export const APP_DESCRIPTION = "Send small items with travelers going your way.";
 
-export const HOME_PATH = "/";
+export const HOME_PATH = "/dashboard";
 export const LOGIN_PATH = "/login";
 export const SIGNUP_PATH = "/signup";
 export const FORGOT_PASSWORD_PATH = "/forgot-password";
@@ -15,9 +15,22 @@ export const LOGOUT_API_PATH = "/api/v1/auth/logout";
 export const RESET_PASSWORD_API_PATH = "/api/v1/auth/reset-password";
 export const API_TIMEOUT_MILLISECONDS = 5_000;
 
-// Pages open to logged-out visitors (src/proxy.ts). Every other page needs a login.
-// Logged-in users have no reason to see them, so they are sent home.
-export const PUBLIC_PATHS: readonly string[] = [LOGIN_PATH, SIGNUP_PATH, FORGOT_PASSWORD_PATH];
+// Authentication forms redirect signed-in users to their dashboard.
+export const AUTH_PATHS: readonly string[] = [LOGIN_PATH, SIGNUP_PATH, FORGOT_PASSWORD_PATH];
+// Unknown public URLs reach Next.js's 404; known application sections require login.
+export const PROTECTED_PATH_PREFIXES: readonly string[] = [
+  "/dashboard",
+  "/search",
+  "/requests",
+  "/trips",
+  "/shipments",
+  "/disputes",
+  "/wallet",
+  "/profile",
+  "/settings",
+  "/verification",
+  "/admin",
+];
 
 export const ACCESS_TOKEN_COOKIE = "access_token";
 export const REFRESH_TOKEN_COOKIE = "refresh_token";
