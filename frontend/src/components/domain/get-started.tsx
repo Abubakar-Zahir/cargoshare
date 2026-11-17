@@ -1,6 +1,6 @@
-import type { Profile } from "@/lib/types";
+import type { ProfileProps } from "@/lib/types";
 
-const GetStarted = ({ profile }: Readonly<{ profile: Profile }>) => {
+const GetStarted = ({ profile }: ProfileProps) => {
   const roles = [profile.is_sender && "Send items", profile.is_traveler && "Carry items"]
     .filter(Boolean)
     .join(" and ");

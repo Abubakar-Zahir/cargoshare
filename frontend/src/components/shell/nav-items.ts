@@ -1,6 +1,6 @@
-export const DASHBOARD_PATH = "/dashboard";
+import type { NavItem } from "@/lib/types";
 
-export type NavItem = Readonly<{ label: string; href: string; available: boolean }>;
+export const DASHBOARD_PATH = "/dashboard";
 
 // Only Home has shipped; future destinations have no clickable links yet.
 export const getNavItems = (isTraveler: boolean, mobile = false): readonly NavItem[] => {

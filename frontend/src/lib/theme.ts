@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 
 import { DARK_THEME, LIGHT_THEME, THEME_COOKIE } from "@/lib/constants";
 
-export type Theme = typeof LIGHT_THEME | typeof DARK_THEME;
+import type { Theme } from "@/lib/types";
 
 export const isTheme = (value: unknown): value is Theme =>
   value === LIGHT_THEME || value === DARK_THEME;

@@ -3,7 +3,7 @@ import "@/app/globals.css";
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Geist } from "next/font/google";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { ChildrenProps } from "@/lib/types";
 
 import ThemeToggle from "@/components/theme/theme-toggle";
 import {
@@ -50,7 +50,7 @@ export const generateViewport = async (): Promise<Viewport> => {
   };
 };
 
-const RootLayout = async ({ children }: Readonly<{ children: ReactNode }>) => {
+const RootLayout = async ({ children }: ChildrenProps) => {
   const theme = await getSavedTheme();
 
   return (

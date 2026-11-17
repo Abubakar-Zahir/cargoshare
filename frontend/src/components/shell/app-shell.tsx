@@ -1,11 +1,10 @@
-import type { ReactNode } from "react";
 import BottomNav from "@/components/shell/bottom-nav";
 import Sidebar from "@/components/shell/sidebar";
 import SkipLink from "@/components/shell/skip-link";
 import UserMenu from "@/components/shell/user-menu";
-import type { Profile } from "@/lib/types";
+import type { AppShellProps } from "@/lib/types";
 
-const AppShell = ({ profile, children }: Readonly<{ profile: Profile; children: ReactNode }>) => (
+const AppShell = ({ profile, children }: AppShellProps) => (
   <div className="mx-auto flex w-full max-w-[1440px] flex-1">
     <SkipLink />
     <Sidebar isTraveler={profile.is_traveler} />

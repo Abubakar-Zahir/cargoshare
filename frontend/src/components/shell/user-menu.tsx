@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import Button from "@/components/ui/button";
 import { logOut } from "@/lib/auth/actions";
 import { LOG_OUT_LABEL, THEME_COOKIE } from "@/lib/constants";
-import type { Profile } from "@/lib/types";
+import type { ProfileProps } from "@/lib/types";
 
 const useDeviceTheme = async (): Promise<void> => {
   "use server";
@@ -11,7 +11,7 @@ const useDeviceTheme = async (): Promise<void> => {
   store.delete(THEME_COOKIE);
 };
 
-const UserMenu = ({ profile }: Readonly<{ profile: Profile }>) => (
+const UserMenu = ({ profile }: ProfileProps) => (
   <details className="relative max-w-64 min-w-0">
     <summary className="flex min-h-12 cursor-pointer items-center gap-2 rounded-control border border-line-strong px-3 text-sm">
       <span className="truncate" title={profile.username}>

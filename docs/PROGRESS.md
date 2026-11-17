@@ -8,8 +8,8 @@
 |---|---|
 | Step | PR8: App shell and Dashboard v1 |
 | Status | AWAITING REVIEW: PR8 implemented and verified; Owner explicitly deferred PR8 teaching |
-| Branch | `app_shell_dashboard`, based on PR7 commit `3f2a2da` on `design_basics_v2` |
-| Next step | Owner visual review and publishing; PR8 teaching deferred, PR7 understanding questions pending |
+| Branch | `app_shell_dashboard`; Owner requested committing and pushing the reusable guard/type refactor |
+| Next step | Owner review of PR8 with reusable profile guard and centralized types |
 
 
 ## Steps
@@ -59,6 +59,13 @@
 - Next:
 - Notes:
 -->
+
+### 2026-11-17 | PR8 review: shared profile guard and centralized types
+- Owner explicitly authorized committing these changes to PR8 and pushing `app_shell_dashboard`. The checkout is already on that branch; unrelated untracked files are excluded.
+- Owner requested reuse of repeated token/profile checks and separate type declarations. On the current `add_comment` branch, added request-scoped `requireProfile()` and used it in the protected app layout/dashboard. It preserves redirects for absent tokens/profiles and returns a validated profile.
+- Moved layout, component, navigation and theme types into `src/lib/types.ts`, keeping API types derived from the generated schema. Runtime constants stay in their existing modules. The environment schema's own inferred `PublicEnv` remains colocated with its config-loader schema.
+- Lint, TypeScript, formatting and temporary helper checks pass (missing token skips the API and redirects; missing profile redirects; valid profile returns). Changes are uncommitted; unrelated untracked files preserved. This Owner-requested refactor spans existing PR7/PR8 components rather than introducing a new feature PR.
+- Full repository pre-commit gate and webpack production build pass. Next.js 16.4.1 emitted a known-vulnerability upgrade notice; the CLI-directed retry completed successfully with the warning. Dependencies were not changed.
 
 ### 2026-11-13 | Separate local PR7 and PR8 commits
 - Owner explicitly requested commits. Committed PR7 as `3f2a2da` on `design_basics_v2`; commit hooks passed. Moved `app_shell_dashboard` forward to that commit and restored only the remaining PR8 work for its separate commit. Backup stashes retained; no push performed.

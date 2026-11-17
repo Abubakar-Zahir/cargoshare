@@ -1,3 +1,4 @@
+import type { TravelerNavProps } from "@/lib/types";
 import { cookies } from "next/headers";
 
 import { getNavItems } from "@/components/shell/nav-items";
@@ -20,7 +21,7 @@ const saveNavigation = async (formData: FormData): Promise<void> => {
   });
 };
 
-const Sidebar = async ({ isTraveler }: Readonly<{ isTraveler: boolean }>) => {
+const Sidebar = async ({ isTraveler }: TravelerNavProps) => {
   const store = await cookies();
   const saved = store.get(NAV_COOKIE)?.value;
   const width = saved === "compact" || saved === "expanded" ? saved : null;

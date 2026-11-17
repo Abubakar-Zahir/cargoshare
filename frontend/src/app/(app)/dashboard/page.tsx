@@ -1,18 +1,12 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import GetStarted from "@/components/domain/get-started";
 import EmptyState from "@/components/feedback/empty-state";
-import { getMyProfile } from "@/lib/api/client";
-import { getAccessToken } from "@/lib/auth/session";
-import { LOGIN_PATH } from "@/lib/constants";
+import { requireProfile } from "@/lib/auth/require-profile";
 
 export const metadata: Metadata = { title: "Dashboard | CargoShare" };
 
 const DashboardPage = async () => {
-  const token = await getAccessToken();
-  if (!token) redirect(LOGIN_PATH);
-  const profile = await getMyProfile(token);
-  if (!profile) redirect(LOGIN_PATH);
+  const profile = await requireProfile();
   const now = new Date();
   const hour = Number(
     new Intl.DateTimeFormat("en-GB", {

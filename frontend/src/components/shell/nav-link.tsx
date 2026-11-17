@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { NavItem } from "@/components/shell/nav-items";
+import type { NavLinkProps } from "@/lib/types";
 
-const NavLink = ({ item, compact = false }: Readonly<{ item: NavItem; compact?: boolean }>) => {
+const NavLink = ({ item, compact = false }: NavLinkProps) => {
   const pathname = usePathname();
   const classes = `flex min-h-12 min-w-0 items-center rounded-control py-2 no-underline ${compact ? "justify-center px-1 text-center text-xs" : "gap-3 px-2 text-sm"}`;
   if (!item.available)
