@@ -6,14 +6,7 @@ import Button from "@/components/ui/button";
 import Field from "@/components/ui/field";
 import Input from "@/components/ui/input";
 
-import type { AuthField, AuthFormState } from "@/lib/types";
-
-type AuthFormProps = Readonly<{
-  action: (previous: AuthFormState, formData: FormData) => Promise<AuthFormState>;
-  fields: readonly AuthField[];
-  submitLabel: string;
-  hiddenValues?: Readonly<Record<string, string>>;
-}>;
+import type { AuthFormProps, AuthFormState } from "@/lib/types";
 
 const INITIAL_STATE: AuthFormState = { error: null, success: null, values: null };
 

@@ -1,4 +1,5 @@
 import createClient from "openapi-fetch";
+import { cache } from "react";
 
 import { env } from "@/env";
 import type { paths } from "@/lib/api/schema";
@@ -67,7 +68,7 @@ export const refreshAccessToken = async (
 };
 
 // Returns null when the profile cannot be loaded, including when the backend is down.
-export const getMyProfile = async (accessToken: string): Promise<Profile | null> => {
+export const getMyProfile = cache(async (accessToken: string): Promise<Profile | null> => {
   const { data } = await send(() =>
     api.GET(ME_PATH, {
       headers: { Authorization: `Bearer ${accessToken}` },
@@ -75,4 +76,4 @@ export const getMyProfile = async (accessToken: string): Promise<Profile | null>
     }),
   );
   return data ?? null;
-};
+});

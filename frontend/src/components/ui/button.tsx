@@ -1,9 +1,4 @@
-import type { ComponentProps } from "react";
-
-type ButtonProps = ComponentProps<"button"> &
-  Readonly<{
-    variant?: "primary" | "secondary";
-  }>;
+import type { ButtonProps } from "@/lib/types";
 
 const VARIANT_CLASSES = {
   primary: "bg-accent text-accent-ink",

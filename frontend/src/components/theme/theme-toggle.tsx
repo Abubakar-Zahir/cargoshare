@@ -1,14 +1,7 @@
 import { saveTheme } from "@/components/theme/actions";
 import Button from "@/components/ui/button";
 import { THEME_FIELD } from "@/lib/constants";
-import type { Theme } from "@/lib/theme";
-
-type ThemeToggleProps = Readonly<{
-  lightLabel: string;
-  darkLabel: string;
-  lightTheme: Theme;
-  darkTheme: Theme;
-}>;
+import type { ThemeToggleProps } from "@/lib/types";
 
 // Both buttons are sent and globals.css shows only the one offering the other theme:
 // the server cannot know the device's setting, and this needs no JavaScript.

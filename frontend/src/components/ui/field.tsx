@@ -1,12 +1,4 @@
-import type { ReactNode } from "react";
-
-type FieldProps = Readonly<{
-  id: string;
-  label: string;
-  hint?: string;
-  hintId?: string;
-  children: ReactNode;
-}>;
+import type { FieldProps } from "@/lib/types";
 
 const Field = ({ id, label, hint, hintId, children }: FieldProps) => (
   <div className="flex flex-col gap-1.5">

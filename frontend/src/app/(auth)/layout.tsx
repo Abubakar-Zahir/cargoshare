@@ -1,7 +1,7 @@
-import type { ReactNode } from "react";
+import type { ChildrenProps } from "@/lib/types";
 import styles from "./auth.module.css";
 
-const AuthLayout = ({ children }: Readonly<{ children: ReactNode }>) => (
+const AuthLayout = ({ children }: ChildrenProps) => (
   <div className={styles.page}>
     <div className={styles.card}>{children}</div>
   </div>

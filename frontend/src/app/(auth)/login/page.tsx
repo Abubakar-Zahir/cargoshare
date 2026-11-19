@@ -13,15 +13,12 @@ import {
   NO_ACCOUNT_LABEL,
   SIGNUP_PATH,
 } from "@/lib/constants";
+import type { LoginPageProps } from "@/lib/types";
 import { safeNextPath } from "@/lib/validation/auth";
 
 export const metadata: Metadata = {
   title: LOGIN_TITLE,
 };
-
-type LoginPageProps = Readonly<{
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}>;
 
 const LoginPage = async ({ searchParams }: LoginPageProps) => {
   const params = await searchParams;

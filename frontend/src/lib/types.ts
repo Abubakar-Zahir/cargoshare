@@ -1,6 +1,8 @@
-// Shared shapes used by more than one file. Values live in constants.ts; shapes live here.
+// Frontend shapes live here; values and runtime logic stay in their own modules.
 // Shapes the backend sends or expects come only from the generated schema, never by hand.
 import type { components } from "@/lib/api/schema";
+import type { ComponentProps, ReactNode } from "react";
+import type { DARK_THEME, LIGHT_THEME } from "@/lib/constants";
 
 type Schemas = components["schemas"];
 
@@ -31,3 +33,42 @@ export type AuthFormState = Readonly<{
   success: string | null;
   values: Readonly<Record<string, string>> | null;
 }>;
+
+export type ChildrenProps = Readonly<{ children: ReactNode }>;
+export type ProfileProps = Readonly<{ profile: Profile }>;
+export type AppShellProps = ChildrenProps & ProfileProps;
+export type TravelerNavProps = Readonly<{ isTraveler: boolean }>;
+
+export type NavItem = Readonly<{ label: string; href: string; available: boolean }>;
+export type NavLinkProps = Readonly<{ item: NavItem; compact?: boolean }>;
+export type EmptyStateProps = ChildrenProps & Readonly<{ title: string }>;
+
+export type LoginPageProps = Readonly<{
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}>;
+
+export type AuthFormProps = Readonly<{
+  action: (previous: AuthFormState, formData: FormData) => Promise<AuthFormState>;
+  fields: readonly AuthField[];
+  submitLabel: string;
+  hiddenValues?: Readonly<Record<string, string>>;
+}>;
+
+export type Theme = typeof LIGHT_THEME | typeof DARK_THEME;
+export type ThemeToggleProps = Readonly<{
+  lightLabel: string;
+  darkLabel: string;
+  lightTheme: Theme;
+  darkTheme: Theme;
+}>;
+
+export type ButtonProps = ComponentProps<"button"> &
+  Readonly<{ variant?: "primary" | "secondary" }>;
+export type InputProps = ComponentProps<"input">;
+export type FieldProps = ChildrenProps &
+  Readonly<{
+    id: string;
+    label: string;
+    hint?: string;
+    hintId?: string;
+  }>;
