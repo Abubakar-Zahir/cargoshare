@@ -17,7 +17,7 @@ const SiteHeader = async () => {
   const profile = token ? await getMyProfile(token) : null;
   return (
     <header className="border-b border-line">
-      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+      <div className="flex w-full flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-8 lg:px-16">
         <Link href="/" className="font-display text-xl font-semibold text-ink no-underline">
           {APP_NAME}
         </Link>

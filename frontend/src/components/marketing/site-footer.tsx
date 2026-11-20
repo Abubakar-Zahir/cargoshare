@@ -3,10 +3,10 @@ import { APP_NAME, LOGIN_PATH, SIGNUP_PATH } from "@/lib/constants";
 
 const SiteFooter = () => (
   <footer className="mt-16 border-t border-line py-8">
-    <div className="mx-auto max-w-6xl px-4 sm:px-6">
+    <div className="w-full px-4 sm:px-8 lg:px-16">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <p className="font-display text-xl font-semibold">{APP_NAME}</p>
-        <nav aria-label="Footer navigation" className="flex gap-6">
+        <nav aria-label="Footer navigation" className="flex flex-wrap gap-x-6 gap-y-2">
           <Link href={SIGNUP_PATH} className="inline-flex min-h-12 items-center">
             Create an account
           </Link>

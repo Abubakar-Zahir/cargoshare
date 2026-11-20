@@ -13,6 +13,11 @@
 
 
 
+### 2026-11-20 | PR9 layout adjustment
+- Owner requested wider matching header/footer and centered landing content. Unified responsive side padding, centered hero/buttons and steps heading, bounded step rows with tighter columns, and updated city image sizes for the wider layout. Footer links wrap on small screens.
+- Follow-up: centered pricing, trust and final signup sections and city captions; standardized section spacing and heading sizes. Pricing switches to two columns at tablet width.
+- TypeScript, full frontend ESLint and changed-file formatting checks pass. Owner requested committing these layout changes on PR9; no push requested.
+
 ## Steps
 > Renumbered 2026-10-16: backend setup is PR1, frontend setup is PR2, old PR1 to PR28 are now PR3 to PR30. History below keeps the old numbers.
 

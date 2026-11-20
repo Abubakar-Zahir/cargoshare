@@ -38,22 +38,25 @@ const STEPS = [
 
 const HomePage = () => (
   <>
-    <main id="main-content" className="mx-auto w-full max-w-6xl px-4 sm:px-6">
-      <section className="pt-14 pb-12 sm:pt-24 sm:pb-20" aria-labelledby="landing-title">
+    <main id="main-content" className="w-full px-4 sm:px-8 lg:px-16">
+      <section
+        className="pt-14 pb-12 text-center sm:pt-24 sm:pb-20"
+        aria-labelledby="landing-title"
+      >
         <p className="mb-6 text-xs font-medium tracking-[0.2em] text-accent uppercase">
           Shared routes. Small deliveries.
         </p>
         <h1
           id="landing-title"
-          className="max-w-4xl font-display text-5xl leading-[1.05] tracking-tight sm:text-7xl lg:text-8xl"
+          className="mx-auto max-w-4xl font-display text-5xl leading-[1.05] tracking-tight sm:text-7xl lg:text-8xl"
         >
           A little space.
           <br />A useful journey.
         </h1>
-        <p className="mt-8 max-w-xl text-lg text-ink-muted sm:text-xl">
+        <p className="mx-auto mt-8 max-w-xl text-lg text-ink-muted sm:text-xl">
           Something needs to get there. Someone’s already going. CargoShare brings the two together.
         </p>
-        <div className="mt-8 flex flex-wrap gap-3">
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link
             href={SIGNUP_PATH}
             className="inline-flex min-h-12 items-center justify-center rounded-control bg-accent px-6 font-medium text-accent-ink no-underline"
@@ -90,74 +93,87 @@ const HomePage = () => (
             <Image
               src={image}
               alt={alt}
-              sizes="(max-width: 1152px) 33vw, 368px"
+              sizes="(min-width: 1024px) calc((100vw - 168px) / 3), (min-width: 640px) calc((100vw - 104px) / 3), calc((100vw - 48px) / 3)"
               className="aspect-[4/3] w-full object-cover"
             />
-            <figcaption className="mt-3 text-sm font-medium sm:text-base">{city}</figcaption>
+            <figcaption className="mt-3 text-center text-sm font-medium sm:text-base">
+              {city}
+            </figcaption>
           </figure>
         ))}
       </section>
       <section
         id="how-it-works"
         aria-labelledby="how-title"
-        className="mt-16 border-t border-line py-10 sm:mt-24"
+        className="mt-16 border-t border-line py-12 sm:mt-24 sm:py-20"
       >
-        <div className="mb-8 flex flex-wrap items-baseline justify-between gap-3">
+        <div className="mb-8 flex flex-col items-center gap-3 text-center">
           <h2 id="how-title" className="font-display text-3xl font-semibold sm:text-4xl">
             One route. Four simple steps.
           </h2>
           <p className="text-sm text-ink-muted">The journey we’re building</p>
         </div>
-        <ol className="divide-y divide-line">
+        <ol className="mx-auto max-w-5xl divide-y divide-line">
           {STEPS.map(([title, description], index) => (
-            <li key={title} className="grid gap-3 py-6 sm:grid-cols-[3rem_1fr_1.3fr] sm:gap-6">
+            <li
+              key={title}
+              className="grid gap-3 py-6 sm:grid-cols-[2rem_minmax(0,1fr)] sm:gap-6 lg:grid-cols-[2rem_minmax(0,0.8fr)_minmax(0,1.2fr)]"
+            >
               <span className="text-sm text-accent">0{index + 1}</span>
               <h3 className="text-lg font-medium">{title}</h3>
-              <p className="max-w-xl text-ink-muted">{description}</p>
+              <p className="max-w-xl text-ink-muted sm:col-start-2 lg:col-start-auto">
+                {description}
+              </p>
             </li>
           ))}
         </ol>
       </section>
       <section
         aria-labelledby="price-title"
-        className="border-y border-dashed border-line-strong py-10 sm:py-14"
+        className="border-y border-dashed border-line-strong py-12 text-center sm:py-20"
       >
         <p className="text-xs font-medium tracking-widest text-ink-muted uppercase">
           An illustrative journey · not a live listing
         </p>
-        <div className="mt-5 grid gap-8 sm:grid-cols-2">
+        <div className="mx-auto mt-8 grid max-w-5xl items-center gap-8 md:grid-cols-2">
           <div>
             <h2 id="price-title" className="font-display text-3xl font-semibold sm:text-4xl">
               Lahore <span aria-hidden="true">→</span>
               <span className="sr-only">to</span> Islamabad
             </h2>
-            <p className="mt-4 max-w-md text-ink-muted">
+            <p className="mx-auto mt-4 max-w-md text-ink-muted">
               A traveler sets a price per kilogram. The item’s weight determines the agreed price.
             </p>
           </div>
-          <div className="sm:border-l sm:border-line sm:pl-10">
-            <p className="text-2xl font-medium sm:text-3xl">5 kg × Rs 800 = Rs 4,000</p>
+          <div className="min-w-0 md:border-l md:border-line md:pl-8">
+            <p className="text-xl font-medium sm:text-2xl lg:text-3xl">5 kg × Rs 800 = Rs 4,000</p>
             <p className="mt-4 text-sm text-ink-muted">
               Example only. Payment in this project is simulated; no real money moves.
             </p>
           </div>
         </div>
       </section>
-      <section aria-labelledby="trust-title" className="py-12 sm:py-20">
+      <section aria-labelledby="trust-title" className="py-12 text-center sm:py-20">
         <h2 id="trust-title" className="font-display text-3xl font-semibold sm:text-4xl">
           Clarity at every handoff.
         </h2>
-        <p className="mt-5 max-w-2xl text-lg text-ink-muted">
+        <p className="mx-auto mt-5 max-w-2xl text-lg text-ink-muted">
           Know the route, agree on the item and understand what happens next. We’re building ID
           checks, delivery confirmations, ratings and a dispute process to support that journey.
         </p>
-        <p className="mt-4 max-w-2xl text-sm text-ink-muted">
+        <p className="mx-auto mt-4 max-w-2xl text-sm text-ink-muted">
           These safeguards are planned features, not guarantees of safety or insurance. Never agree
           to carry an item you haven’t inspected.
         </p>
       </section>
-      <section aria-labelledby="join-title" className="border-t border-line py-12 sm:py-16">
-        <h2 id="join-title" className="max-w-2xl font-display text-3xl font-semibold sm:text-5xl">
+      <section
+        aria-labelledby="join-title"
+        className="border-t border-line py-12 text-center sm:py-20"
+      >
+        <h2
+          id="join-title"
+          className="mx-auto max-w-2xl font-display text-3xl font-semibold sm:text-4xl"
+        >
           Your next journey could do a little more.
         </h2>
         <Link
